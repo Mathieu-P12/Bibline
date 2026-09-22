@@ -604,6 +604,34 @@ body.dark-mode .lang-select{background-color:var(--paper-panel);}
   text-transform:uppercase;color:var(--slate-dim);
 }
 
+/* ---------- Catégories multiples dans le formulaire (v0.7) ---------- */
+.cat-form-chip.primary{border-color:var(--brass);}
+.cat-primary-star{color:var(--brass);margin-left:4px;font-size:12px;}
+.cat-make-primary{color:var(--slate-dim);margin-left:4px;font-size:13px;padding:0 2px;border-radius:50%;}
+.cat-make-primary:hover{color:var(--brass);}
+.cat-multi-hint{font-size:11px;color:var(--slate-dim);margin-top:8px;line-height:1.5;}
+.d-cats{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
+.d-cats .cat-badge{margin-bottom:0 !important;}
+
+/* ---------- Références bibliques (v0.7) ---------- */
+.bible-refs{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+.bible-ref-chip{
+  display:inline-flex;align-items:center;gap:0;flex-wrap:wrap;white-space:pre-wrap;
+  font-family:'Montserrat',sans-serif;font-size:11.5px;line-height:1.3;
+  padding:4px 10px;border-radius:20px;border:1px solid rgba(138,106,52,0.35);
+  background:rgba(138,106,52,0.07);color:var(--ink-700);
+}
+.bible-ref-chip a{color:var(--brass);text-decoration:none;font-weight:600;}
+.bible-ref-chip a:hover{text-decoration:underline;}
+.bible-ref-chip .bref-icon{font-size:11px;opacity:0.85;margin-right:5px;}
+.bible-ref-chip.invalid{border-color:rgba(140,64,56,0.5);background:rgba(140,64,56,0.07);color:#8C4038;}
+.bible-ref-chip.invalid .bref-err{font-size:10.5px;opacity:0.9;}
+.bible-ref-chip.unlinked{opacity:0.7;}
+.bible-help{font-size:11px;color:var(--slate-dim);margin:6px 0 8px 0;line-height:1.5;}
+#d-refs{margin:-10px 0 18px 0;}
+#dbl-refs{flex:none;margin:0 0 6px 0;overflow:hidden;max-height:26px;padding-right:70px;}
+#detail-bar-landscape.expanded #dbl-refs{max-height:none;}
+
 /* ---------- Paramètres ---------- */
 .settings-row{
   display:flex;align-items:center;justify-content:space-between;gap:14px;
@@ -711,6 +739,7 @@ body.dark-mode .lang-select{background-color:var(--paper-panel);}
         <div id="dbl-text">
           <div class="date" id="dbl-date"></div>
           <h3 id="dbl-title"></h3>
+          <div id="dbl-refs" class="bible-refs" style="display:none;"></div>
           <p id="dbl-desc"></p>
           <div id="dbl-link-row" class="dbl-extra-row">
             <a id="dbl-link" href="#" target="_blank" rel="noopener">Voir la source →</a>
@@ -755,9 +784,10 @@ body.dark-mode .lang-select{background-color:var(--paper-panel);}
   <div id="detail">
     <button id="detail-close">✕</button>
     <div id="d-image">emplacement image</div>
-    <div class="cat-badge" id="d-cat"></div>
+    <div id="d-cats" class="d-cats"></div>
     <h2 id="d-title"></h2>
     <div class="date" id="d-date"></div>
+    <div id="d-refs" class="bible-refs" style="display:none;"></div>
     <button id="edit-btn">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
       <span id="edit-btn-label">Modifier</span>
@@ -840,12 +870,13 @@ body.dark-mode .lang-select{background-color:var(--paper-panel);}
 
       <div class="form-row">
         <button type="button" class="accordion-toggle" id="category-toggle">
-          <span class="acc-chevron">▸</span> <span id="category-toggle-label">Catégorie</span> <span class="acc-hint" id="category-toggle-summary">(aucune sélectionnée)</span>
+          <span class="acc-chevron">▸</span> <span id="category-toggle-label">Catégories</span> <span class="acc-hint" id="category-toggle-summary">(aucune sélectionnée)</span>
         </button>
         <div class="accordion-body" id="category-body">
           <div class="cat-select-list" id="cat-select-list">
             <button type="button" id="cat-add-btn">+ Nouvelle catégorie</button>
           </div>
+          <div id="cat-multi-hint" class="cat-multi-hint"></div>
           <div id="cat-new-form">
             <input type="text" id="new-cat-name" placeholder="Nom de la catégorie">
             <input type="color" id="new-cat-color" value="#8A6A34">
@@ -860,6 +891,17 @@ body.dark-mode .lang-select{background-color:var(--paper-panel);}
         </button>
         <div class="accordion-body" id="desc-body">
           <textarea id="f-desc" placeholder="Notes, description détaillée…"></textarea>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <button type="button" class="accordion-toggle" id="bible-toggle">
+          <span class="acc-chevron">▸</span> <span id="bible-toggle-label">Références bibliques</span> <span class="acc-hint" id="bible-toggle-hint">(optionnel)</span>
+        </button>
+        <div class="accordion-body" id="bible-body">
+          <input type="text" id="f-bible-refs" placeholder="ex : Gn 6:9-22 ; Mt 24:37-39" autocomplete="off" autocapitalize="off" spellcheck="false">
+          <div id="f-bible-help" class="bible-help">Séparez plusieurs références par « ; ». Formats acceptés : Gn 6, Gn 6:9, Gn 6:9-22, Mt 3:1-4:11, Jean 1:1, 3, 5-7, Jude 3.</div>
+          <div id="f-bible-preview" class="bible-refs"></div>
         </div>
       </div>
 
@@ -940,14 +982,15 @@ body.dark-mode .lang-select{background-color:var(--paper-panel);}
       <button id="catdelete-close" class="modal-close">✕</button>
       <h2>Supprimer « <span id="catdelete-label"></span> »</h2>
       <p style="font-size:13.5px;color:var(--ink-700);line-height:1.6;margin:0 0 20px 0;">
-        Que faire des événements et périodes actuellement classés dans cette catégorie ?
+        Que faire des événements et périodes actuellement classés dans cette catégorie ?<br>
+        <span style="font-size:12px;color:var(--slate);">Un élément qui possède aussi d'autres catégories les conserve simplement : il n'est jamais supprimé.</span>
       </p>
       <div class="modal-actions" style="flex-direction:column;align-items:stretch;gap:10px;">
         <button type="button" class="btn-secondary" id="catdelete-reassign" style="text-align:left;">
-          Déplacer ces éléments vers « Sans catégorie »
+          Retirer cette catégorie des éléments (ceux qui n'en ont plus passent en « Sans catégorie »)
         </button>
         <button type="button" class="btn-danger" id="catdelete-purge" style="text-align:left;">
-          Supprimer aussi ces éléments définitivement
+          Supprimer aussi les éléments qui n'appartiennent qu'à cette catégorie
         </button>
         <button type="button" class="btn-secondary" id="catdelete-cancel" style="text-align:center;margin-top:4px;">
           Annuler
@@ -1002,6 +1045,33 @@ body.dark-mode .lang-select{background-color:var(--paper-panel);}
 
       <div class="settings-row">
         <div>
+          <div class="sr-label" id="mapimg-row-label">Images sur la carte</div>
+          <span class="sr-sub" id="mapimg-row-sub">Affiche la photo des événements sur le plan (vue rapprochée)</span>
+        </div>
+        <div class="sr-control">
+          <label class="toggle-switch">
+            <input type="checkbox" id="map-images-toggle" checked>
+            <span class="ts-track"></span>
+            <span class="ts-thumb"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="settings-row">
+        <div>
+          <div class="sr-label" id="bible-row-label">Ouvrir les versets dans</div>
+          <span class="sr-sub" id="bible-row-sub">JW Library si l'application est installée, sinon jw.org</span>
+        </div>
+        <div class="sr-control">
+          <select id="bible-target-select" class="lang-select">
+            <option value="app">JW Library</option>
+            <option value="web">jw.org</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="settings-row">
+        <div>
           <div class="sr-label" id="storage-row-label">Stockage local</div>
           <span class="sr-sub" id="storage-row-sub">Vos données sont enregistrées automatiquement sur cet appareil</span>
         </div>
@@ -1048,7 +1118,7 @@ body.dark-mode .lang-select{background-color:var(--paper-panel);}
       <div class="settings-row" style="border-bottom:none;flex-direction:column;align-items:flex-start;">
         <div class="sr-label" id="mentions-row-label" style="margin-bottom:8px;">Mentions</div>
         <div class="settings-about">
-          <b>Frise Chronologique</b> — v0.6<br>
+          <b>Frise Chronologique</b> — <span id="app-version-label">v0.7</span><br>
           Application de gestion de connaissances historiques.<br>
           Vos données sont enregistrées automatiquement dans le stockage local de ce navigateur, sur cet appareil. Pour les retrouver sur un autre appareil, utilisez « Envoyer » puis « Recevoir » ci-dessus.
         </div>
@@ -1113,6 +1183,8 @@ body.dark-mode .lang-select{background-color:var(--paper-panel);}
 <script>
 (function(){
 
+const APP_VERSION = 'v0.7';
+
 const CATS = {
   politique:  {label:"Politique",  color:"#8A6A34"},
   science:    {label:"Science",    color:"#3F7A72"},
@@ -1139,6 +1211,26 @@ function applyCanvasTheme(){
   COLORS.line = brassA(0.28);
 }
 function catOf(key){ return CATS[key] || CATS.sans_categorie; }
+
+/* ---------- Catégories multiples (v0.7) ----------
+   Chaque élément possède désormais un tableau "cats" (ex : ['personnage','deluge','lignee_jesus']).
+   La première catégorie est la catégorie principale : c'est elle qui donne sa couleur sur la frise et la carte.
+   Le champ historique "cat" est conservé et toujours égal à cats[0], pour rester compatible
+   avec les anciennes sauvegardes et les fichiers exportés par la v0.6. */
+function itemCats(it){ return (Array.isArray(it.cats) && it.cats.length) ? it.cats : [it.cat || 'sans_categorie']; }
+function itemHasCat(it, key){ return itemCats(it).includes(key); }
+function itemInCats(it, set){ return itemCats(it).some(k=>set.has(k)); }
+function normalizeItemCats(it){
+  let arr = (Array.isArray(it.cats) && it.cats.length) ? it.cats.slice() : [it.cat || 'sans_categorie'];
+  arr = [...new Set(arr.filter(k=>CATS[k]))];
+  if(arr.length>1) arr = arr.filter(k=>k!=='sans_categorie');
+  if(!arr.length) arr = ['sans_categorie'];
+  it.cats = arr; it.cat = arr[0];
+  return it;
+}
+function escapeHtml(str){
+  return String(str==null?'':str).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
 
 // Gestion du premier plan pour les modales pouvant s'ouvrir l'une par-dessus l'autre
 // (ex : ajouter un événement depuis la carte, ou choisir un lieu sur la carte depuis le formulaire)
@@ -1239,8 +1331,8 @@ const PERIOD_ITEMS = [
   {start:1947, end:1991, t:"Guerre froide", cat:"politique", d:"Période de tensions géopolitiques entre les blocs américain et soviétique."},
 ];
 
-EVENTS.forEach((e,i)=>{ e.id='e'+i; e.isPeriod=false; });
-PERIOD_ITEMS.forEach((p,i)=>{ p.id='p'+i; p.isPeriod=true; });
+EVENTS.forEach((e,i)=>{ e.id='e'+i; e.isPeriod=false; normalizeItemCats(e); });
+PERIOD_ITEMS.forEach((p,i)=>{ p.id='p'+i; p.isPeriod=true; normalizeItemCats(p); });
 let ALL_ITEMS = EVENTS.concat(PERIOD_ITEMS);
 function rebuildAllItems(){ ALL_ITEMS = EVENTS.concat(PERIOD_ITEMS); schedulePersist(); }
 function genId(prefix){ return prefix+'_'+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
@@ -1512,18 +1604,18 @@ function drawEras(){
 const OVERVIEW_THRESHOLD_YEARS = 1200;
 let overviewFilterEnabled = true;
 let overviewCats = new Set(['personnage']);
-function isCatEmphasized(cat){
+function isItemEmphasized(it){
   if(overviewFilterEnabled && (viewEnd-viewStart) > OVERVIEW_THRESHOLD_YEARS){
-    return overviewCats.has(cat);
+    return itemInCats(it, overviewCats);
   }
   return true;
 }
 
 function drawPeriodBars(){
   periodRects=[];
-  const activeItems = PERIOD_ITEMS.filter(p=>activeCats.has(p.cat) && p.end>=viewStart-50 && p.start<=viewEnd+50);
-  const dimmed = activeItems.filter(p=>!isCatEmphasized(p.cat));
-  const emphasized = activeItems.filter(p=>isCatEmphasized(p.cat)).sort((a,b)=>a.start-b.start);
+  const activeItems = PERIOD_ITEMS.filter(p=>itemInCats(p, activeCats) && p.end>=viewStart-50 && p.start<=viewEnd+50);
+  const dimmed = activeItems.filter(p=>!isItemEmphasized(p));
+  const emphasized = activeItems.filter(p=>isItemEmphasized(p)).sort((a,b)=>a.start-b.start);
 
   // Catégories en retrait : simple bande fine et translucide, sans texte, pour ne pas surcharger la vue
   dimmed.forEach(p=>{
@@ -1694,9 +1786,9 @@ function drawDimmedBubble(e){
 
 function drawEvents(){
   markerRects=[];
-  const activeEvents = EVENTS.filter(e=>activeCats.has(e.cat) && e.y>=viewStart-50 && e.y<=viewEnd+50);
-  const dimmed = activeEvents.filter(e=>!isCatEmphasized(e.cat));
-  const visible = activeEvents.filter(e=>isCatEmphasized(e.cat)).sort((a,b)=>a.y-b.y);
+  const activeEvents = EVENTS.filter(e=>itemInCats(e, activeCats) && e.y>=viewStart-50 && e.y<=viewEnd+50);
+  const dimmed = activeEvents.filter(e=>!isItemEmphasized(e));
+  const visible = activeEvents.filter(e=>isItemEmphasized(e)).sort((a,b)=>a.y-b.y);
 
   // Catégories en retrait : simples bulles translucides, sans texte, pour ne pas surcharger la vue globale
   dimmed.forEach(drawDimmedBubble);
@@ -1814,46 +1906,93 @@ function drawEventMarker(e, m, crossOffset, gapPx, showThumbs, hideAt, fullAt, m
 /* ---------- Interactions : pan / zoom (souris, tactile, molette, pincement) ---------- */
 let activePointers = new Map();
 let dragging=false, dragStartMain=0, dragStartView=[0,0];
-let pinchStartDist=0, pinchStartSpan=0, pinchStartMid=0;
-let velocityMain=0, lastMoveTime=0, lastMoveMainPos=0;
+let pinchStartDist=0, pinchStartSpan=0, pinchStartMidTime=0;
 let inertiaFrame=null;
+
+/* v0.7 — Glissement moins sensible :
+   1) Seuil de démarrage : la frise ne bouge qu'une fois le doigt (ou la souris) déplacé de quelques pixels,
+      ce qui évite les micro-déplacements lors d'un simple appui et rend les « taps » fiables.
+   2) Vitesse de lancer calculée sur les ~90 dernières ms (et non plus sur le seul dernier mouvement,
+      dont l'intervalle de quelques ms produisait des pics de vitesse et des lancers démesurés), puis plafonnée.
+   3) Pas d'inertie si le doigt s'est immobilisé avant d'être relevé.
+   4) Un glissement ne déclenche plus l'ouverture d'un élément au relâchement.
+   5) Pincement : le point sous les doigts reste fixe (plus de recentrage brutal), et la reprise à un doigt
+      après un pincement ne provoque plus de saut (coordonnées désormais relatives au canevas). */
+const DRAG_THRESHOLD_MOUSE = 4;   // px
+const DRAG_THRESHOLD_TOUCH = 10;  // px
+const FLING_SAMPLE_WINDOW = 90;   // ms
+const FLING_IDLE_CUTOFF = 70;     // ms
+const FLING_MIN_SPEED = 0.3;      // px/ms en dessous duquel on ne lance pas
+const FLING_MAX_SPEED = 2.2;      // px/ms
+const FLING_FRICTION = 0.9;       // amortissement par tranche de 16 ms
+let pointerDownPos = null, dragMoved = false, suppressNextClick = false, dragPointerType = 'mouse';
+let moveSamples = [];
 
 function dist(a,b){ return Math.hypot(a.x-b.x, a.y-b.y); }
 
 function stopInertia(){ if(inertiaFrame){ cancelAnimationFrame(inertiaFrame); inertiaFrame=null; } }
 
+function pushMoveSample(mainPos){
+  const now = performance.now();
+  moveSamples.push({t:now, pos:mainPos});
+  while(moveSamples.length>2 && now-moveSamples[0].t > FLING_SAMPLE_WINDOW) moveSamples.shift();
+}
+function releaseVelocity(){
+  if(moveSamples.length<2) return 0;
+  const last = moveSamples[moveSamples.length-1];
+  if(performance.now()-last.t > FLING_IDLE_CUTOFF) return 0;
+  const first = moveSamples[0];
+  const dt = last.t-first.t;
+  if(dt < 16) return 0;
+  const v = (last.pos-first.pos)/dt;
+  return Math.max(-FLING_MAX_SPEED, Math.min(FLING_MAX_SPEED, v));
+}
+
 function startInertia(vPxPerMs){
-  let vel = vPxPerMs;
-  function step(){
-    const span = viewEnd-viewStart;
-    const yearsPerPx = span/contentMain;
-    const deltaYears = -vel*16*yearsPerPx;
+  let vel = vPxPerMs, lastT = performance.now();
+  function step(now){
+    const dt = Math.min(40, Math.max(1, now-lastT)); lastT = now;
+    const yearsPerPx = (viewEnd-viewStart)/contentMain;
+    const deltaYears = -vel*dt*yearsPerPx;
+    const before = viewStart;
     setView(viewStart+deltaYears, viewEnd+deltaYears, false);
-    vel *= 0.92;
-    if(Math.abs(vel) > 0.015) inertiaFrame = requestAnimationFrame(step);
+    vel *= Math.pow(FLING_FRICTION, dt/16);
+    // On s'arrête quand c'est assez lent, ou en butée (début / fin de la frise)
+    if(Math.abs(vel) > 0.02 && viewStart!==before) inertiaFrame = requestAnimationFrame(step);
     else inertiaFrame = null;
   }
   inertiaFrame = requestAnimationFrame(step);
+}
+
+function beginSingleDrag(clientX, clientY){
+  const rect=canvas.getBoundingClientRect();
+  const mainPos = mainOf(clientX, clientY, rect);
+  dragStartMain = mainPos; dragStartView=[viewStart,viewEnd];
+  moveSamples = [];
+  pushMoveSample(mainPos);
 }
 
 canvas.addEventListener('pointerdown', e=>{
   canvas.setPointerCapture(e.pointerId);
   activePointers.set(e.pointerId, {x:e.clientX, y:e.clientY});
   stopInertia();
+  if(animFrame){ cancelAnimationFrame(animFrame); animFrame=null; }
   if(activePointers.size===1){
-    dragging=true; canvas.classList.add('dragging');
-    const rect=canvas.getBoundingClientRect();
-    const mainPos = mainOf(e.clientX,e.clientY,rect);
-    dragStartMain = mainPos; dragStartView=[viewStart,viewEnd];
-    lastMoveTime = performance.now(); lastMoveMainPos = mainPos; velocityMain=0;
+    suppressNextClick = false;
+    dragMoved = false;
+    dragPointerType = e.pointerType || 'mouse';
+    pointerDownPos = {x:e.clientX, y:e.clientY};
+    dragging = true;
+    beginSingleDrag(e.clientX, e.clientY);
   } else if(activePointers.size===2){
-    dragging=false;
+    dragging=false; dragMoved = true; // un pincement n'est jamais un « tap »
+    canvas.classList.remove('dragging');
     const pts=[...activePointers.values()];
     pinchStartDist = dist(pts[0],pts[1]);
     pinchStartSpan = viewEnd-viewStart;
     const rect=canvas.getBoundingClientRect();
-    const midX=(pts[0].x+pts[1].x)/2-rect.left, midY=(pts[0].y+pts[1].y)/2-rect.top;
-    pinchStartMid = mainToTime(isVertical? midY: midX);
+    const midMain = mainOf((pts[0].x+pts[1].x)/2, (pts[0].y+pts[1].y)/2, rect);
+    pinchStartMidTime = mainToTime(midMain);
   }
 });
 
@@ -1864,23 +2003,35 @@ canvas.addEventListener('pointermove', e=>{
     const pts=[...activePointers.values()].slice(0,2);
     const d=dist(pts[0],pts[1]);
     if(pinchStartDist>10){
+      const rect=canvas.getBoundingClientRect();
+      const midMain = mainOf((pts[0].x+pts[1].x)/2, (pts[0].y+pts[1].y)/2, rect);
       const scale = pinchStartDist/Math.max(1,d);
-      let newSpan = Math.max(MIN_SPAN, Math.min(MAX_YEAR-MIN_YEAR, pinchStartSpan*scale));
-      setView(pinchStartMid-newSpan/2, pinchStartMid+newSpan/2, false);
+      const newSpan = Math.max(MIN_SPAN, Math.min(MAX_YEAR-MIN_YEAR, pinchStartSpan*scale));
+      // L'instant situé sous les doigts au début du pincement reste sous les doigts
+      const ratio = (midMain-PAD_START)/contentMain;
+      const ns = pinchStartMidTime - ratio*newSpan;
+      setView(ns, ns+newSpan, false);
     }
     return;
   }
 
-  if(dragging){
+  if(dragging && activePointers.has(e.pointerId)){
+    if(!dragMoved){
+      const threshold = dragPointerType==='mouse' ? DRAG_THRESHOLD_MOUSE : DRAG_THRESHOLD_TOUCH;
+      if(!pointerDownPos || Math.hypot(e.clientX-pointerDownPos.x, e.clientY-pointerDownPos.y) < threshold) return;
+      // Seuil franchi : on démarre le glissement à partir de la position actuelle (pas de saut)
+      dragMoved = true;
+      canvas.classList.add('dragging');
+      beginSingleDrag(e.clientX, e.clientY);
+      return;
+    }
     const rect=canvas.getBoundingClientRect();
     const mainPos = mainOf(e.clientX,e.clientY,rect);
     const span = dragStartView[1]-dragStartView[0];
     const deltaYears = -((mainPos-dragStartMain)/contentMain)*span;
     setView(dragStartView[0]+deltaYears, dragStartView[1]+deltaYears, false);
-    const now=performance.now(), dt=now-lastMoveTime;
-    if(dt>0) velocityMain = (mainPos-lastMoveMainPos)/dt;
-    lastMoveTime=now; lastMoveMainPos=mainPos;
-  } else {
+    pushMoveSample(mainPos);
+  } else if(activePointers.size===0) {
     const rect=canvas.getBoundingClientRect();
     const mx=e.clientX-rect.left, my=e.clientY-rect.top;
     const hit = markerRects.some(r=>mx>=r.x&&mx<=r.x+r.w&&my>=r.y&&my<=r.y+r.h) ||
@@ -1890,19 +2041,25 @@ canvas.addEventListener('pointermove', e=>{
 });
 
 function endPointer(e){
+  if(!activePointers.has(e.pointerId)) return;
   activePointers.delete(e.pointerId);
   if(activePointers.size===0){
     if(dragging){
       dragging=false; canvas.classList.remove('dragging');
-      if(Math.abs(velocityMain) > 0.05) startInertia(velocityMain);
+      if(dragMoved){
+        const v = (e.type==='pointercancel') ? 0 : releaseVelocity();
+        if(Math.abs(v) > FLING_MIN_SPEED) startInertia(v);
+      }
     }
+    if(dragMoved) suppressNextClick = true;
     pinchStartDist=0;
+    pointerDownPos=null;
   } else if(activePointers.size===1){
+    // Fin d'un pincement : on reprend un glissement à un doigt depuis la position réelle du doigt restant
     const remaining=[...activePointers.values()][0];
-    dragging=true; canvas.classList.add('dragging');
-    const mainPos = isVertical? remaining.y : remaining.x;
-    dragStartMain=mainPos; dragStartView=[viewStart,viewEnd];
-    lastMoveTime=performance.now(); lastMoveMainPos=mainPos; velocityMain=0;
+    dragging=true; dragMoved=true;
+    canvas.classList.add('dragging');
+    beginSingleDrag(remaining.x, remaining.y);
     pinchStartDist=0;
   }
 }
@@ -1910,6 +2067,7 @@ window.addEventListener('pointerup', endPointer);
 window.addEventListener('pointercancel', endPointer);
 
 canvas.addEventListener('click', e=>{
+  if(suppressNextClick){ suppressNextClick=false; return; } // fin d'un glissement : ce n'est pas un clic
   const rect=canvas.getBoundingClientRect();
   const mx=e.clientX-rect.left, my=e.clientY-rect.top;
   const hitEvent = markerRects.find(r=>mx>=r.x&&mx<=r.x+r.w&&my>=r.y&&my<=r.y+r.h);
@@ -2076,17 +2234,20 @@ function updateCategoryLabel(key,label){
 }
 function deleteCategory(key, mode){
   if(!CATS[key] || CATS[key].locked || CATS[key].protected) return;
+  // Avec les catégories multiples : en mode "purge", seuls les éléments qui n'appartiennent QU'À cette
+  // catégorie sont supprimés ; ceux qui en ont d'autres la perdent simplement (Noé ne disparaît pas si
+  // l'on supprime la catégorie "Déluge", puisqu'il reste un "Personnage").
+  const onlyThis = it => { const c=itemCats(it); return c.length===1 && c[0]===key; };
   if(mode==='purge'){
-    for(let i=EVENTS.length-1;i>=0;i--){ if(EVENTS[i].cat===key) EVENTS.splice(i,1); }
-    for(let i=PERIOD_ITEMS.length-1;i>=0;i--){ if(PERIOD_ITEMS[i].cat===key) PERIOD_ITEMS.splice(i,1); }
-  } else {
-    EVENTS.forEach(e=>{ if(e.cat===key) e.cat='sans_categorie'; });
-    PERIOD_ITEMS.forEach(p=>{ if(p.cat===key) p.cat='sans_categorie'; });
+    for(let i=EVENTS.length-1;i>=0;i--){ if(onlyThis(EVENTS[i])) EVENTS.splice(i,1); }
+    for(let i=PERIOD_ITEMS.length-1;i>=0;i--){ if(onlyThis(PERIOD_ITEMS[i])) PERIOD_ITEMS.splice(i,1); }
   }
   delete CATS[key];
+  EVENTS.forEach(normalizeItemCats);
+  PERIOD_ITEMS.forEach(normalizeItemCats);
   activeCats.delete(key); activeCats.add('sans_categorie');
   searchCats.delete(key);
-  if(selectedCatKey===key) selectedCatKey='sans_categorie';
+  selectedCatKeys = selectedCatKeys.filter(k=>k!==key);
   renderFilterChips(); renderSearchCatChips(); renderCatFormChips(); renderCatManageList(); renderOverviewCatsList(); renderExportCatsList();
   rebuildAllItems();
   updateEventCounterBadge();
@@ -2178,7 +2339,7 @@ const STRINGS = {
     charactersModalTitle:"Liste des personnages", datesModalTitle:"Liste des dates", mapModalTitle:"Plan",
     deleteBtnLabel:"Supprimer",
     expandMoreLabel:"Voir plus de détails", expandLessLabel:"Réduire les détails",
-    accCategory:"Catégorie", accDescription:"Description", accImage:"Image",
+    accCategory:"Catégories", accDescription:"Description", accImage:"Image",
     accLink:"Lien / source", accLocation:"Lieu",
     optionalHint:"(optionnel)",
     sendBtnLabel:"Envoyer", receiveBtnLabel:"Recevoir",
@@ -2188,6 +2349,16 @@ const STRINGS = {
     mapAddModeLabel:"Ajouter un événement ici",
     prevLabel:"Événement précédent", nextLabel:"Événement suivant",
     mapBtnTitle:"Voir sur la carte",
+    catPrimaryTitle:"Catégorie principale (couleur sur la frise)", catMakePrimaryTitle:"Définir comme catégorie principale",
+    catNoneSelected:"(aucune sélectionnée)",
+    catMultiHint:"Plusieurs catégories possibles. La catégorie marquée ★ donne sa couleur à l'élément ; touchez ☆ pour en changer.",
+    accBible:"Références bibliques",
+    bibleHelp:"Séparez plusieurs références par « ; ». Formats acceptés : Gn 6, Gn 6:9, Gn 6:9-22, Mt 3:1-4:11, Jean 1:1, 3, 5-7, Jude 3.",
+    bibleErrBook:"livre non reconnu", bibleErrAmbiguous:(l)=>`abréviation ambiguë (${l}…)`,
+    bibleErrChapter:(b,m)=>`${b} ne compte que ${m} chapitre${m>1?'s':''}`, bibleErrOrder:"versets dans le désordre",
+    bibleErrFormat:"format non reconnu (ex : Gn 6:9-22)",
+    mapImgLabel:"Images sur la carte", mapImgSub:"Affiche la photo des événements sur le plan (vue rapprochée)",
+    bibleRowLabel:"Ouvrir les versets dans", bibleRowSub:"JW Library si l'application est installée, sinon jw.org",
   },
   en:{
     searchPlaceholder:"Search",
@@ -2214,7 +2385,7 @@ const STRINGS = {
     charactersModalTitle:"Characters list", datesModalTitle:"Dates list", mapModalTitle:"Map",
     deleteBtnLabel:"Delete",
     expandMoreLabel:"Show more details", expandLessLabel:"Show less",
-    accCategory:"Category", accDescription:"Description", accImage:"Image",
+    accCategory:"Categories", accDescription:"Description", accImage:"Image",
     accLink:"Link / source", accLocation:"Location",
     optionalHint:"(optional)",
     sendBtnLabel:"Send", receiveBtnLabel:"Receive",
@@ -2224,6 +2395,16 @@ const STRINGS = {
     mapAddModeLabel:"Add an event here",
     prevLabel:"Previous event", nextLabel:"Next event",
     mapBtnTitle:"View on map",
+    catPrimaryTitle:"Main category (colour on the timeline)", catMakePrimaryTitle:"Set as main category",
+    catNoneSelected:"(none selected)",
+    catMultiHint:"Several categories allowed. The one marked ★ gives the item its colour; tap ☆ to change it.",
+    accBible:"Bible references",
+    bibleHelp:"Separate several references with \";\". Accepted formats: Gen 6, Gen 6:9, Gen 6:9-22, Mt 3:1-4:11, John 1:1, 3, 5-7, Jude 3.",
+    bibleErrBook:"unknown book", bibleErrAmbiguous:(l)=>`ambiguous abbreviation (${l}…)`,
+    bibleErrChapter:(b,m)=>`${b} only has ${m} chapter${m>1?'s':''}`, bibleErrOrder:"verses out of order",
+    bibleErrFormat:"unrecognised format (e.g. Gen 6:9-22)",
+    mapImgLabel:"Images on the map", mapImgSub:"Show event photos on the map (close-up view)",
+    bibleRowLabel:"Open verses in", bibleRowSub:"JW Library if the app is installed, otherwise jw.org",
   },
   es:{
     searchPlaceholder:"Buscar",
@@ -2250,7 +2431,7 @@ const STRINGS = {
     charactersModalTitle:"Lista de personajes", datesModalTitle:"Lista de fechas", mapModalTitle:"Mapa",
     deleteBtnLabel:"Eliminar",
     expandMoreLabel:"Ver más detalles", expandLessLabel:"Reducir detalles",
-    accCategory:"Categoría", accDescription:"Descripción", accImage:"Imagen",
+    accCategory:"Categorías", accDescription:"Descripción", accImage:"Imagen",
     accLink:"Enlace / fuente", accLocation:"Lugar",
     optionalHint:"(opcional)",
     sendBtnLabel:"Enviar", receiveBtnLabel:"Recibir",
@@ -2260,6 +2441,16 @@ const STRINGS = {
     mapAddModeLabel:"Añadir un evento aquí",
     prevLabel:"Evento anterior", nextLabel:"Evento siguiente",
     mapBtnTitle:"Ver en el mapa",
+    catPrimaryTitle:"Categoría principal (color en la línea de tiempo)", catMakePrimaryTitle:"Definir como categoría principal",
+    catNoneSelected:"(ninguna seleccionada)",
+    catMultiHint:"Se permiten varias categorías. La marcada con ★ da su color al elemento; toca ☆ para cambiarla.",
+    accBible:"Referencias bíblicas",
+    bibleHelp:"Separa varias referencias con «;». Formatos aceptados: Gé 6, Gé 6:9, Gé 6:9-22, Mt 3:1-4:11, Juan 1:1, 3, 5-7, Judas 3.",
+    bibleErrBook:"libro no reconocido", bibleErrAmbiguous:(l)=>`abreviatura ambigua (${l}…)`,
+    bibleErrChapter:(b,m)=>`${b} solo tiene ${m} capítulo${m>1?'s':''}`, bibleErrOrder:"versículos desordenados",
+    bibleErrFormat:"formato no reconocido (ej.: Gé 6:9-22)",
+    mapImgLabel:"Imágenes en el mapa", mapImgSub:"Muestra la foto de los eventos en el mapa (vista cercana)",
+    bibleRowLabel:"Abrir los versículos en", bibleRowSub:"JW Library si la aplicación está instalada; si no, jw.org",
   },
   zh:{
     searchPlaceholder:"搜索",
@@ -2296,6 +2487,16 @@ const STRINGS = {
     mapAddModeLabel:"在此处添加事件",
     prevLabel:"上一个事件", nextLabel:"下一个事件",
     mapBtnTitle:"在地图上查看",
+    catPrimaryTitle:"主分类（时间轴上的颜色）", catMakePrimaryTitle:"设为主分类",
+    catNoneSelected:"（未选择）",
+    catMultiHint:"可选择多个分类。带 ★ 的分类决定元素的颜色；点击 ☆ 可更改。",
+    accBible:"圣经经文",
+    bibleHelp:"多个经文请用“;”分隔。书卷名请使用法文、英文或西班牙文，例如：Gen 6:9-22、Mt 3:1-4:11、John 1:1, 3, 5-7。",
+    bibleErrBook:"无法识别书卷", bibleErrAmbiguous:(l)=>`缩写不明确（${l}…）`,
+    bibleErrChapter:(b,m)=>`${b} 只有 ${m} 章`, bibleErrOrder:"经节顺序有误",
+    bibleErrFormat:"格式无法识别（例如：Gen 6:9-22）",
+    mapImgLabel:"地图上的图片", mapImgSub:"在地图上显示事件照片（放大视图）",
+    bibleRowLabel:"经文打开方式", bibleRowSub:"已安装 JW Library 时使用该应用，否则使用 jw.org",
   }
 };
 let currentLang = 'fr';
@@ -2344,6 +2545,15 @@ function applyLanguage(lang){
   document.getElementById('link-toggle-label').textContent = s.accLink;
   document.getElementById('location-toggle-label').textContent = s.accLocation;
   document.getElementById('category-toggle-label').textContent = s.accCategory;
+  document.getElementById('bible-toggle-label').textContent = s.accBible;
+  document.getElementById('bible-toggle-hint').textContent = s.optionalHint;
+  document.getElementById('f-bible-help').textContent = s.bibleHelp;
+  document.getElementById('mapimg-row-label').textContent = s.mapImgLabel;
+  document.getElementById('mapimg-row-sub').textContent = s.mapImgSub;
+  document.getElementById('bible-row-label').textContent = s.bibleRowLabel;
+  document.getElementById('bible-row-sub').textContent = s.bibleRowSub;
+  renderCatFormChips();
+  if(typeof fBiblePreview!=='undefined' && fBibleRefs) renderBibleRefs(fBiblePreview, fBibleRefs.value, true);
   document.getElementById('desc-toggle-hint').textContent = s.optionalHint;
   document.getElementById('image-toggle-hint').textContent = s.optionalHint;
   document.getElementById('link-toggle-hint').textContent = s.optionalHint;
@@ -2369,6 +2579,8 @@ function applyLanguage(lang){
 
 document.getElementById('lang-select').addEventListener('change', (e)=>{
   applyLanguage(e.target.value);
+  saveSettings();
+  refreshOpenDetail(); // noms des livres bibliques dans la nouvelle langue
 });
 
 /* Mode sombre */
@@ -2378,7 +2590,58 @@ darkModeToggle.addEventListener('change', ()=>{
   document.body.classList.toggle('dark-mode', isDarkMode);
   applyCanvasTheme();
   render();
+  if(typeof saveSettings==='function') saveSettings();
 });
+
+/* Images sur la carte */
+const mapImagesToggle = document.getElementById('map-images-toggle');
+mapImagesToggle.addEventListener('change', ()=>{
+  mapShowImages = mapImagesToggle.checked;
+  if(mapMarkersLayer) renderMapMarkers();
+  saveSettings();
+});
+/* Ouverture des versets : JW Library ou jw.org */
+const bibleTargetSelect = document.getElementById('bible-target-select');
+bibleTargetSelect.addEventListener('change', ()=>{
+  bibleTarget = bibleTargetSelect.value==='web' ? 'web' : 'app';
+  refreshOpenDetail(); // régénère les liens affichés
+  saveSettings();
+});
+
+/* Mémorisation des réglages sur l'appareil (langue, mode sombre, images sur la carte, versets) */
+const SETTINGS_KEY = 'frise-settings';
+function saveSettings(){
+  try{
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({
+      lang: currentLang, dark: isDarkMode, mapImages: mapShowImages, bibleTarget
+    }));
+  }catch(err){ /* stockage indisponible (navigation privée…) : les réglages restent valables pour la session */ }
+}
+function loadSettings(){
+  let st = null;
+  try{ st = JSON.parse(localStorage.getItem(SETTINGS_KEY) || 'null'); }catch(err){ st = null; }
+  if(!st) return;
+  if(typeof st.mapImages==='boolean'){ mapShowImages = st.mapImages; mapImagesToggle.checked = st.mapImages; }
+  if(st.bibleTarget==='web' || st.bibleTarget==='app'){ bibleTarget = st.bibleTarget; bibleTargetSelect.value = st.bibleTarget; }
+  if(st.lang && STRINGS[st.lang]) applyLanguage(st.lang);
+  if(typeof st.dark==='boolean' && st.dark!==isDarkMode){
+    darkModeToggle.checked = st.dark;
+    darkModeToggle.dispatchEvent(new Event('change'));
+  }
+}
+// Réaffiche le détail ouvert (ex : après changement de langue ou de cible des versets), sans le rouvrir s'il est fermé
+function refreshOpenDetail(){
+  if(!currentDetailItem) return;
+  if(detail.classList.contains('open')) openDetailPanelPortrait(currentDetailItem);
+  else if(detailBarLandscape.classList.contains('open')){
+    const wasExpanded = detailBarLandscape.classList.contains('expanded');
+    openDetailBarLandscape(currentDetailItem);
+    if(wasExpanded){
+      detailBarLandscape.classList.add('expanded');
+      document.getElementById('dbl-expand-label').textContent = T().expandLessLabel;
+    }
+  }
+}
 
 /* Catégories affichées en vue globale (décongestion) */
 const overviewToggle = document.getElementById('overview-toggle');
@@ -2424,7 +2687,7 @@ let exportCats = new Set();
 let exportSearchQuery = '';
 const exportCatsListEl = document.getElementById('export-cats-list');
 function itemCountForCat(key){
-  return EVENTS.filter(e=>e.cat===key).length + PERIOD_ITEMS.filter(p=>p.cat===key).length;
+  return EVENTS.filter(e=>itemHasCat(e,key)).length + PERIOD_ITEMS.filter(p=>itemHasCat(p,key)).length;
 }
 function renderExportCatsList(){
   exportCatsListEl.innerHTML='';
@@ -2469,13 +2732,13 @@ document.getElementById('export-select-all').addEventListener('click', ()=>{
 
 document.getElementById('export-confirm').addEventListener('click', ()=>{
   const wanted = exportCats.size>0 ? exportCats : null;
-  const events = EVENTS.filter(e=>!wanted || wanted.has(e.cat)).map(({id, ...rest})=>rest);
-  const periods = PERIOD_ITEMS.filter(p=>!wanted || wanted.has(p.cat)).map(({id, ...rest})=>rest);
-  const usedCats = new Set([...events.map(e=>e.cat), ...periods.map(p=>p.cat)]);
+  const events = EVENTS.filter(e=>!wanted || itemInCats(e, wanted)).map(({id, ...rest})=>rest);
+  const periods = PERIOD_ITEMS.filter(p=>!wanted || itemInCats(p, wanted)).map(({id, ...rest})=>rest);
+  const usedCats = new Set([...events.flatMap(e=>itemCats(e)), ...periods.flatMap(p=>itemCats(p))]);
   const categories = {};
   usedCats.forEach(key=>{ if(CATS[key]) categories[key] = {label:CATS[key].label, color:CATS[key].color}; });
 
-  const payload = {app:'frise-chronologique', version:1, exportedAt:new Date().toISOString(), categories, events, periods};
+  const payload = {app:'frise-chronologique', version:2, appVersion:APP_VERSION, exportedAt:new Date().toISOString(), categories, events, periods};
   const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -2509,14 +2772,13 @@ document.getElementById('import-file-input').addEventListener('change', (e)=>{
         });
       }
       let importedEvents=0, importedPeriods=0;
+      // Fichiers v0.6 : un seul champ "cat" ; fichiers v0.7 : tableau "cats" — normalizeItemCats gère les deux
       (data.events||[]).forEach(ev=>{
-        const cat = CATS[ev.cat] ? ev.cat : 'sans_categorie';
-        EVENTS.push({...ev, cat, id:genId('e'), isPeriod:false});
+        EVENTS.push(normalizeItemCats({...ev, id:genId('e'), isPeriod:false}));
         importedEvents++;
       });
       (data.periods||[]).forEach(p=>{
-        const cat = CATS[p.cat] ? p.cat : 'sans_categorie';
-        PERIOD_ITEMS.push({...p, cat, id:genId('p'), isPeriod:true});
+        PERIOD_ITEMS.push(normalizeItemCats({...p, id:genId('p'), isPeriod:true}));
         importedPeriods++;
       });
       rebuildAllItems();
@@ -2582,11 +2844,14 @@ function goToYear(year){
 function updateSearchResults(){
   const raw = searchBox.value;
   const q=normalize(raw.trim());
-  const pool = searchCats.size>0 ? ALL_ITEMS.filter(it=>searchCats.has(it.cat)) : ALL_ITEMS;
+  const pool = searchCats.size>0 ? ALL_ITEMS.filter(it=>itemInCats(it, searchCats)) : ALL_ITEMS;
   if(!q){ searchResults.classList.remove('show'); return; }
 
   const yearMatch = parseYearQuery(raw);
-  const matches = pool.filter(it=>normalize(it.t).includes(q)).slice(0,8);
+  // Titre d'abord, puis éléments dont les références bibliques correspondent (ex : « Gn 6 », « Genèse 6 »)
+  const byTitle = pool.filter(it=>normalize(it.t).includes(q));
+  const byRefs = pool.filter(it=>!byTitle.includes(it) && it.bibleRefs && bibleRefsSearchText(it).includes(q));
+  const matches = byTitle.concat(byRefs).slice(0,8);
   if(matches.length===0 && yearMatch==null){ searchResults.classList.remove('show'); return; }
 
   let html = '';
@@ -2601,7 +2866,7 @@ function updateSearchResults(){
       ? `${formatYear(it.startYear!=null?it.startYear:Math.floor(it.start))}–${formatYear(it.endYear!=null?it.endYear:Math.floor(it.end))}`
       : formatYear(it.year!=null?it.year:Math.floor(it.y));
     return `<div class="search-item" data-id="${it.id}">
-      <span class="si-left"><span class="sdot" style="background:${catOf(it.cat).color}"></span><span class="stitle">${it.t}</span></span>
+      <span class="si-left"><span class="sdot" style="background:${catOf(it.cat).color}"></span><span class="stitle">${escapeHtml(it.t)}</span></span>
       <span class="sy">${dateLabel}</span>
     </div>`;
   }).join('');
@@ -2637,6 +2902,150 @@ document.addEventListener('click', e=>{
   }
 });
 
+/* ---------- Références bibliques (v0.7) ----------
+   Fonctionnement repris du module Obsidian « JW Library Linker » (github.com/msakowski/obsidian-library-linker,
+   licence Apache 2.0) : une référence comme « Gn 6:9-22 » devient un lien
+   jwlibrary:///finder?bible=01006009-01006022&wtlocale=F qui ouvre le passage directement dans JW Library.
+   Code du passage = livre (2 chiffres) + chapitre (3 chiffres) + verset (3 chiffres).
+   Les noms de livres (français, anglais, espagnol) proviennent des fichiers de ce même module. */
+const BIBLE_BOOKS = [{"n":{"F":["Genèse","Gen.","Gn"],"E":["Genesis","Gen.","Ge"],"S":["Génesis","Gén.","Gé"]},"a":["genesis"],"c":50},{"n":{"F":["Exode","Ex.","Ex"],"E":["Exodus","Ex.","Ex"],"S":["Éxodo","Éx.","Éx"]},"a":["exodo"],"c":40},{"n":{"F":["Lévitique","Lév.","Lv"],"E":["Leviticus","Le.","Le"],"S":["Levítico","Lev.","Le"]},"a":["levitico"],"c":27},{"n":{"F":["Nombres","Nomb.","Nb"],"E":["Numbers","Nu.","Nu"],"S":["Números","Núm.","Nú"]},"a":["numeros"],"c":36},{"n":{"F":["Deutéronome","Deut.","Dt"],"E":["Deuteronomy","Deut.","De"],"S":["Deuteronomio","Deut.","Dt"]},"a":[],"c":34},{"n":{"F":["Josué","Jos.","Jos"],"E":["Joshua","Jos.","Jos"],"S":["Josué","Jos.","Jos"]},"a":["josue"],"c":24},{"n":{"F":["Juges","Juges","Jg"],"E":["Judges","Jg.","Jg"],"S":["Jueces","Juec.","Jue"]},"a":[],"c":21},{"n":{"F":["Ruth","Ruth","Ru"],"E":["Ruth","Ru.","Ru"],"S":["Rut","Rut","Rut"]},"a":[],"c":4},{"n":{"F":["1 Samuel","1 Sam.","1S"],"E":["1 Samuel","1 Sam.","1Sa"],"S":["1 Samuel","1 Sam.","1Sa"]},"a":[],"c":31},{"n":{"F":["2 Samuel","2 Sam.","2S"],"E":["2 Samuel","2 Sa.","2Sa"],"S":["2 Samuel","2 Sam.","2Sa"]},"a":[],"c":24},{"n":{"F":["1 Rois","1 Rois","1R"],"E":["1 Kings","1 Ki.","1Ki"],"S":["1 Reyes","1 Rey.","1Re"]},"a":[],"c":22},{"n":{"F":["2 Rois","2 Rois","2R"],"E":["2 Kings","2 Ki.","2Ki"],"S":["2 Reyes","2 Rey.","2Re"]},"a":[],"c":25},{"n":{"F":["1 Chroniques","1 Chron.","1Ch"],"E":["1 Chronicles","1 Ch.","1Ch"],"S":["1 Crónicas","1 Crón.","1Cr"]},"a":["1 cronicas"],"c":29},{"n":{"F":["2 Chroniques","2 Chron.","2Ch"],"E":["2 Chronicles","2 Ch.","2Ch"],"S":["2 Crónicas","2 Crón.","2Cr"]},"a":["2 cronicas"],"c":36},{"n":{"F":["Esdras","Esd.","Esd"],"E":["Ezra","Ezra","Ezr"],"S":["Esdras","Esd.","Esd"]},"a":[],"c":10},{"n":{"F":["Néhémie","Néh.","Né"],"E":["Nehemiah","Ne.","Ne"],"S":["Nehemías","Neh.","Ne"]},"a":["nehemias"],"c":13},{"n":{"F":["Esther","Est.","Est"],"E":["Esther","Es.","Es"],"S":["Ester","Est.","Est"]},"a":[],"c":10},{"n":{"F":["Job","Job","Jb"],"E":["Job","Job","Job"],"S":["Job","Job","Job"]},"a":[],"c":42},{"n":{"F":["Psaumes","Ps.","Ps"],"E":["Psalms","Ps.","Ps"],"S":["Salmos","Sal.","Sl"]},"a":[],"c":150},{"n":{"F":["Proverbes","Prov.","Pr"],"E":["Proverbs","Prov.","Pr"],"S":["Proverbios","Prov.","Pr"]},"a":[],"c":31},{"n":{"F":["Ecclésiaste","Eccl.","Ec"],"E":["Ecclesiastes","Eccl.","Ec"],"S":["Eclesiastés","Ecl.","Ec"]},"a":["eclesiastes"],"c":12},{"n":{"F":["Chant de Salomon","Chant de S.","Ct"],"E":["Song of Solomon","Song of Sol.","Ca"],"S":["El Cantar de los Cantares","Cant.","Can"]},"a":["can","cantares","songofsongs"],"c":8},{"n":{"F":["Isaïe","Is.","Is"],"E":["Isaiah","Isa.","Isa"],"S":["Isaías","Is.","Is"]},"a":["isaias"],"c":66},{"n":{"F":["Jérémie","Jér.","Jr"],"E":["Jeremiah","Jer.","Jer"],"S":["Jeremías","Jer.","Jer"]},"a":["jeremias"],"c":52},{"n":{"F":["Lamentations","Lam.","Lm"],"E":["Lamentations","La.","La"],"S":["Lamentaciones","Lam.","Lam"]},"a":[],"c":5},{"n":{"F":["Ézéchiel","Ézéch.","Éz"],"E":["Ezekiel","Eze.","Eze"],"S":["Ezequiel","Ezeq.","Eze"]},"a":[],"c":48},{"n":{"F":["Daniel","Dan.","Dn"],"E":["Daniel","Da.","Da"],"S":["Daniel","Dan.","Da"]},"a":[],"c":12},{"n":{"F":["Osée","Osée","Os"],"E":["Hosea","Ho.","Ho"],"S":["Oseas","Os.","Os"]},"a":[],"c":14},{"n":{"F":["Joël","Joël","Jl"],"E":["Joel","Joel","Joe"],"S":["Joel","Joel","Joe"]},"a":[],"c":3},{"n":{"F":["Amos","Amos","Am"],"E":["Amos","Am.","Am"],"S":["Amós","Amós","Am"]},"a":["amos"],"c":9},{"n":{"F":["Abdias","Abd.","Ab"],"E":["Obadiah","Ob.","Ob"],"S":["Abdías","Abd.","Abd"]},"a":["abdias"],"c":1},{"n":{"F":["Jonas","Jon.","Jon"],"E":["Jonah","Jon.","Jon"],"S":["Jonás","Jon.","Jon"]},"a":["jnh","jonas"],"c":4},{"n":{"F":["Michée","Mich.","Mi"],"E":["Micah","Mic.","Mic"],"S":["Miqueas","Miq.","Miq"]},"a":[],"c":7},{"n":{"F":["Nahum","Nah.","Na"],"E":["Nahum","Na.","Na"],"S":["Nahúm","Nah.","Na"]},"a":["nahum"],"c":3},{"n":{"F":["Habacuc","Hab.","Hab"],"E":["Habakkuk","Hab.","Hab"],"S":["Habacuc","Hab.","Hab"]},"a":[],"c":3},{"n":{"F":["Sophonie","Soph.","Sph"],"E":["Zephaniah","Zep.","Zep"],"S":["Sofonías","Sof.","Sof"]},"a":["sofonias"],"c":3},{"n":{"F":["Aggée","Agg.","Ag"],"E":["Haggai","Hag.","Hag"],"S":["Ageo","Ageo","Ag"]},"a":[],"c":2},{"n":{"F":["Zacharie","Zach.","Za"],"E":["Zechariah","Zec.","Zec"],"S":["Zacarías","Zac.","Zac"]},"a":["zacarias"],"c":14},{"n":{"F":["Malachie","Mal.","Ml"],"E":["Malachi","Mal.","Mal"],"S":["Malaquías","Mal.","Mal"]},"a":["malaquias"],"c":4},{"n":{"F":["Matthieu","Mat.","Mt"],"E":["Matthew","Matt.","Mt"],"S":["Mateo","Mat.","Mt"]},"a":[],"c":28},{"n":{"F":["Marc","Marc","Mc"],"E":["Mark","Mark","Mr"],"S":["Marcos","Mar.","Mr"]},"a":[],"c":16},{"n":{"F":["Luc","Luc","Lc"],"E":["Luke","Luke","Lu"],"S":["Lucas","Luc.","Lu"]},"a":[],"c":24},{"n":{"F":["Jean","Jean","Jean"],"E":["John","John","Joh"],"S":["Juan","Juan","Jn"]},"a":[],"c":21},{"n":{"F":["Actes","Actes","Ac"],"E":["Acts","Acts","Ac"],"S":["Hechos","Hech.","Hch"]},"a":[],"c":28},{"n":{"F":["Romains","Rom.","Rm"],"E":["Romans","Rom.","Ro"],"S":["Romanos","Rom.","Ro"]},"a":[],"c":16},{"n":{"F":["1 Corinthiens","1 Cor.","1Co"],"E":["1 Corinthians","1 Cor.","1Co"],"S":["1 Corintios","1 Cor.","1Co"]},"a":[],"c":16},{"n":{"F":["2 Corinthiens","2 Cor.","2Co"],"E":["2 Corinthians","2 Cor.","2Co"],"S":["2 Corintios","2 Cor.","2Co"]},"a":[],"c":13},{"n":{"F":["Galates","Gal.","Ga"],"E":["Galatians","Gal.","Ga"],"S":["Gálatas","Gál.","Gál"]},"a":["galatas"],"c":6},{"n":{"F":["Éphésiens","Éph.","Éph"],"E":["Ephesians","Eph.","Eph"],"S":["Efesios","Efes.","Ef"]},"a":[],"c":6},{"n":{"F":["Philippiens","Phil.","Php"],"E":["Philippians","Phil.","Php"],"S":["Filipenses","Filip.","Flp"]},"a":[],"c":4},{"n":{"F":["Colossiens","Col.","Col"],"E":["Colossians","Col.","Col"],"S":["Colosenses","Col.","Col"]},"a":[],"c":4},{"n":{"F":["1 Thessaloniciens","1 Thess.","1Th"],"E":["1 Thessalonians","1 Thess.","1Th"],"S":["1 Tesalonicenses","1 Tes.","1Te"]},"a":[],"c":5},{"n":{"F":["2 Thessaloniciens","2 Thess.","2Th"],"E":["2 Thessalonians","2 Thess.","2Th"],"S":["2 Tesalonicenses","2 Tes.","2Te"]},"a":[],"c":3},{"n":{"F":["1 Timothée","1 Tim.","1Tm"],"E":["1 Timothy","1 Tim.","1Ti"],"S":["1 Timoteo","1 Tim.","1Ti"]},"a":[],"c":6},{"n":{"F":["2 Timothée","2 Tim.","2Tm"],"E":["2 Timothy","2 Tim.","2Ti"],"S":["2 Timoteo","2 Tim.","2Ti"]},"a":[],"c":4},{"n":{"F":["Tite","Tite","Tt"],"E":["Titus","Tit.","Tit"],"S":["Tito","Tito","Tit"]},"a":[],"c":3},{"n":{"F":["Philémon","Philém.","Phm"],"E":["Philemon","Phil.","Phm"],"S":["Filemón","Filem.","Flm"]},"a":["filemon"],"c":1},{"n":{"F":["Hébreux","Héb.","Hé"],"E":["Hebrews","Heb.","Heb"],"S":["Hebreos","Heb.","Heb"]},"a":[],"c":13},{"n":{"F":["Jacques","Jacq.","Jc"],"E":["James","Jas.","Jas"],"S":["Santiago","Sant.","Snt"]},"a":[],"c":5},{"n":{"F":["1 Pierre","1 Pierre","1P"],"E":["1 Peter","1 Pet.","1Pe"],"S":["1 Pedro","1 Ped.","1Pe"]},"a":[],"c":5},{"n":{"F":["2 Pierre","2 Pierre","2P"],"E":["2 Peter","2 Pet.","2Pe"],"S":["2 Pedro","2 Ped.","2Pe"]},"a":[],"c":3},{"n":{"F":["1 Jean","1 Jean","1J"],"E":["1 John","1 Jo.","1Jo"],"S":["1 Juan","1 Juan","1Jn"]},"a":[],"c":5},{"n":{"F":["2 Jean","2 Jean","2J"],"E":["2 John","2 Jo.","2Jo"],"S":["2 Juan","2 Juan","2Jn"]},"a":[],"c":1},{"n":{"F":["3 Jean","3 Jean","3J"],"E":["3 John","3 Jo.","3Jo"],"S":["3 Juan","3 Juan","3Jn"]},"a":[],"c":1},{"n":{"F":["Jude","Jude","Jude"],"E":["Jude","Jude","Jude"],"S":["Judas","Jud.","Jud"]},"a":[],"c":1},{"n":{"F":["Révélation","Rév.","Ré"],"E":["Revelation","Rev.","Re"],"S":["Apocalipsis","Apoc.","Ap"]},"a":[],"c":22}];
+const BIBLE_SINGLE_CHAPTER = [31, 57, 63, 64, 65]; // Abdias, Philémon, 2 Jean, 3 Jean, Jude
+const BIBLE_WTLOCALE = {fr:'F', en:'E', es:'S', zh:'CHS'};
+let bibleTarget = 'app'; // 'app' = JW Library, 'web' = jw.org dans le navigateur
+
+function bibleNameLang(){ return ({fr:'F', en:'E', es:'S'})[currentLang] || 'E'; }
+function bibleClean(s){ return s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[.\s\-\/’']/g,''); }
+let BIBLE_INDEX = null;
+function bibleIndex(){
+  if(!BIBLE_INDEX){
+    BIBLE_INDEX = BIBLE_BOOKS.map((b,i)=>({
+      id:i+1,
+      byLang:{F:b.n.F.map(bibleClean), E:b.n.E.map(bibleClean), S:b.n.S.map(bibleClean)},
+      aliases:b.a.map(bibleClean)
+    }));
+  }
+  return BIBLE_INDEX;
+}
+// Retrouve un livre à partir d'un nom complet, d'une abréviation ou du début d'un nom (FR/EN/ES, accents facultatifs)
+function findBibleBook(query){
+  const c = bibleClean(query);
+  if(!c) return {error:'book'};
+  const idx = bibleIndex();
+  const order = [bibleNameLang(),'F','E','S'].filter((v,i,a)=>a.indexOf(v)===i);
+  for(const mode of ['exact','prefix']){
+    const test = mode==='exact' ? (t=>t===c) : (t=>t.startsWith(c));
+    const ids = new Set(idx.filter(b=>Object.values(b.byLang).some(ts=>ts.some(test)) || b.aliases.some(test)).map(b=>b.id));
+    if(ids.size===1) return {id:[...ids][0]};
+    if(ids.size>1){
+      // Plusieurs livres possibles : on privilégie la langue de l'interface, puis le français
+      for(const L of order){
+        const inLang = idx.filter(b=>b.byLang[L].some(test)).map(b=>b.id);
+        if(inLang.length===1) return {id:inLang[0]};
+      }
+      return {error:'ambiguous', ids:[...ids]};
+    }
+  }
+  return {error:'book'};
+}
+function bibleCode(book, ch, v){ return String(book).padStart(2,'0')+String(ch).padStart(3,'0')+String(v).padStart(3,'0'); }
+
+// Analyse UNE référence (« Gn 6:9-22 », « 1 R 18 », « Jude 3 », « Mt 3:1-4:11 », « Jean 1:1, 3, 5-7 »)
+function parseBibleRef(raw){
+  const s = raw.trim().replace(/[–—]/g,'-');
+  if(!s) return null;
+  const m = s.match(/^([1-5]\s*\.?\s*)?([^\d]+?)\s*(\d[\d\s:.,\-]*)$/u);
+  if(!m) return {raw:s, error:'format'};
+  const found = findBibleBook((m[1]||'')+m[2]);
+  if(found.error) return {raw:s, error:found.error, ids:found.ids};
+  const id = found.id, book = BIBLE_BOOKS[id-1], maxCh = book.c;
+  const single = BIBLE_SINGLE_CHAPTER.includes(id);
+  const n = m[3].replace(/\s+/g,'').replace(/\./g,':').replace(/,+$/,'');
+  let segs = [], chapterOnly = false, r;
+  if((r = n.match(/^(\d+):(\d+)(?:-(?:(\d+):)?(\d+))?((?:,\d+(?:-\d+)?)*)$/))){
+    const c=+r[1], v=+r[2];
+    if(r[3] && r[5]) return {raw:s, error:'format'};
+    segs.push({c1:c, v1:v, c2:r[3]?+r[3]:c, v2:r[4]?+r[4]:v});
+    if(r[5]) r[5].split(',').filter(Boolean).forEach(p=>{ const [a,b]=p.split('-').map(Number); segs.push({c1:c, v1:a, c2:c, v2:b||a}); });
+  } else if((r = n.match(/^(\d+)(?:-(\d+))?((?:,\d+(?:-\d+)?)*)$/))){
+    if(single){
+      // Livre d'un seul chapitre : « Jude 3 » désigne le verset 3
+      segs.push({c1:1, v1:+r[1], c2:1, v2:r[2]?+r[2]:+r[1]});
+      if(r[3]) r[3].split(',').filter(Boolean).forEach(p=>{ const [a,b]=p.split('-').map(Number); segs.push({c1:1, v1:a, c2:1, v2:b||a}); });
+    } else {
+      if(r[3]) return {raw:s, error:'format'};
+      chapterOnly = true;
+      segs.push({c1:+r[1], v1:1, c2:r[2]?+r[2]:+r[1], v2:1});
+    }
+  } else {
+    return {raw:s, error:'format'};
+  }
+  for(const g of segs){
+    if(g.c1<1 || g.c2<1 || g.c1>maxCh || g.c2>maxCh) return {raw:s, error:'chapter', max:maxCh, id};
+    if(g.v1<1 || g.v2<1) return {raw:s, error:'format'};
+    if(g.c2<g.c1 || (g.c2===g.c1 && g.v2<g.v1 && !chapterOnly)) return {raw:s, error:'order'};
+  }
+  return {raw:s, id, segs, chapterOnly, single};
+}
+function parseBibleRefs(text){
+  if(!text) return [];
+  return text.split(/[;\n]+/).map(parseBibleRef).filter(Boolean);
+}
+function bibleBookName(id){ return BIBLE_BOOKS[id-1].n[bibleNameLang()][0]; }
+// Découpe une référence analysée en morceaux cliquables (un par plage de versets, comme le module Obsidian)
+function bibleRefParts(ref){
+  const {id, segs, chapterOnly, single} = ref;
+  const book = bibleBookName(id);
+  if(chapterOnly){
+    const g = segs[0];
+    return [{text:`${book} ${g.c1}${g.c2!==g.c1?'-'+g.c2:''}`, param:bibleCode(id,g.c1,1)}];
+  }
+  return segs.map((g,i)=>{
+    let nums;
+    if(g.c2!==g.c1) nums = `${g.c1}:${g.v1}-${g.c2}:${g.v2}`;
+    else {
+      const v = g.v2!==g.v1 ? `${g.v1}-${g.v2}` : `${g.v1}`;
+      nums = (i===0 && !single) ? `${g.c1}:${v}` : v;
+    }
+    const start = bibleCode(id,g.c1,g.v1), end = bibleCode(id,g.c2,g.v2);
+    return {text: i===0 ? `${book} ${nums}` : nums, param: start===end ? start : `${start}-${end}`};
+  });
+}
+function bibleUrl(param){
+  const loc = BIBLE_WTLOCALE[currentLang] || 'F';
+  return bibleTarget==='web'
+    ? `https://www.jw.org/finder?wtlocale=${loc}&prefer=lang&bible=${param}`
+    : `jwlibrary:///finder?bible=${param}&wtlocale=${loc}`;
+}
+function bibleErrorText(ref){
+  const s = T();
+  if(ref.error==='book') return s.bibleErrBook;
+  if(ref.error==='ambiguous') return s.bibleErrAmbiguous((ref.ids||[]).slice(0,4).map(bibleBookName).join(', '));
+  if(ref.error==='chapter') return s.bibleErrChapter(bibleBookName(ref.id), ref.max);
+  if(ref.error==='order') return s.bibleErrOrder;
+  return s.bibleErrFormat;
+}
+// Remplit un conteneur avec les puces de références ; showErrors = true dans le formulaire (aperçu)
+function renderBibleRefs(container, text, showErrors){
+  const refs = parseBibleRefs(text);
+  if(!refs.length){ container.innerHTML=''; container.style.display = showErrors ? '' : 'none'; return; }
+  const targetAttr = bibleTarget==='web' ? ' target="_blank" rel="noopener"' : '';
+  container.innerHTML = refs.map(ref=>{
+    if(ref.error){
+      if(showErrors) return `<span class="bible-ref-chip invalid" title="${escapeHtml(bibleErrorText(ref))}"><span class="bref-icon">⚠</span>${escapeHtml(ref.raw)} <span class="bref-err">— ${escapeHtml(bibleErrorText(ref))}</span></span>`;
+      return `<span class="bible-ref-chip unlinked"><span class="bref-icon">📖</span>${escapeHtml(ref.raw)}</span>`;
+    }
+    const links = bibleRefParts(ref).map(p=>`<a href="${bibleUrl(p.param)}"${targetAttr}>${escapeHtml(p.text)}</a>`).join(', ');
+    return `<span class="bible-ref-chip"><span class="bref-icon">📖</span>${links}</span>`;
+  }).join('');
+  container.style.display = '';
+}
+// Texte des références (noms normalisés) utilisé pour la recherche
+function bibleRefsSearchText(it){
+  if(!it.bibleRefs) return '';
+  const extra = parseBibleRefs(it.bibleRefs).filter(r=>!r.error).map(r=>bibleRefParts(r).map(p=>p.text).join(' ')).join(' ');
+  return normalize(it.bibleRefs+' '+extra);
+}
+
 /* ---------- Panneau détail : deux présentations selon l'orientation ---------- */
 const detail=document.getElementById('detail');
 document.getElementById('detail-close').onclick=()=>detail.classList.remove('open');
@@ -2660,12 +3069,12 @@ function openDetailPanelPortrait(item){
   document.getElementById('d-title').textContent=item.t;
   document.getElementById('d-date').textContent = dateLabelFor(item);
   document.getElementById('d-desc').textContent=item.d || '';
-  const badge=document.getElementById('d-cat');
-  const catInfo = catOf(item.cat);
-  badge.textContent = catInfo.label + (item.isPeriod ? ' · Période' : '');
-  badge.style.color=catInfo.color;
-  badge.style.border=`1px solid ${catInfo.color}55`;
-  badge.style.background=`${catInfo.color}15`;
+  document.getElementById('d-cats').innerHTML = itemCats(item).map((k,i)=>{
+    const c = catOf(k);
+    const suffix = (i===0 && item.isPeriod) ? ' · '+T().typePeriod : '';
+    return `<span class="cat-badge" style="color:${c.color};border:1px solid ${c.color}55;background:${c.color}15;">${escapeHtml(c.label)}${suffix}</span>`;
+  }).join('');
+  renderBibleRefs(document.getElementById('d-refs'), item.bibleRefs, false);
 
   const imgBox = document.getElementById('d-image');
   imgBox.innerHTML = item.img ? `<img src="${item.img}" alt="" referrerpolicy="no-referrer" style="object-position:${item.imgPosition||'center center'};">` : 'emplacement image';
@@ -2687,12 +3096,15 @@ function openDetailBarLandscape(item){
   document.getElementById('dbl-desc').textContent = item.d || '';
 
   const era = eraOf(item.isPeriod ? item.start : item.y);
-  const catInfo = catOf(item.cat);
   const metaEl = document.getElementById('dbl-meta');
   let metaHtml = '';
   if(era) metaHtml += `<span class="cat-badge" style="color:${COLORS.brass};border:1px solid ${COLORS.brass}55;background:${COLORS.brass}15;">${era.title}</span>`;
-  metaHtml += `<span class="cat-badge" style="color:${catInfo.color};border:1px solid ${catInfo.color}55;background:${catInfo.color}15;">${catInfo.label}</span>`;
+  itemCats(item).forEach(k=>{
+    const c = catOf(k);
+    metaHtml += `<span class="cat-badge" style="color:${c.color};border:1px solid ${c.color}55;background:${c.color}15;">${escapeHtml(c.label)}</span>`;
+  });
   metaEl.innerHTML = metaHtml;
+  renderBibleRefs(document.getElementById('dbl-refs'), item.bibleRefs, false);
 
   const imgBox = document.getElementById('dbl-image');
   imgBox.innerHTML = item.img ? `<img src="${item.img}" alt="" referrerpolicy="no-referrer" style="object-position:${item.imgPosition||'center center'};">` : 'emplacement image';
@@ -2744,7 +3156,7 @@ document.getElementById('d-map-btn').onclick = ()=>{
 document.getElementById('dbl-next').addEventListener('click', ()=> navigateRelative(1));
 function navigateRelative(delta){
   if(!currentDetailItem) return;
-  const sorted = ALL_ITEMS.filter(it=>activeCats.has(it.cat)).sort((a,b)=> sortTimeOf(a)-sortTimeOf(b));
+  const sorted = ALL_ITEMS.filter(it=>itemInCats(it, activeCats)).sort((a,b)=> sortTimeOf(a)-sortTimeOf(b));
   const idx = sorted.findIndex(x=>x.id===currentDetailItem.id);
   if(idx<0) return;
   const newIdx = idx+delta;
@@ -2783,6 +3195,8 @@ const fImage = document.getElementById('f-image');
 const fImageUrl = document.getElementById('f-image-url');
 const fImagePreview = document.getElementById('f-image-preview');
 const fLink = document.getElementById('f-link');
+const fBibleRefs = document.getElementById('f-bible-refs');
+const fBiblePreview = document.getElementById('f-bible-preview');
 const fLocationName = document.getElementById('f-location-name');
 const fLat = document.getElementById('f-lat');
 const fLng = document.getElementById('f-lng');
@@ -2792,7 +3206,7 @@ const catNewForm = document.getElementById('cat-new-form');
 
 let editingItem = null;
 let editingType = 'event';
-let selectedCatKey = 'sans_categorie';
+let selectedCatKeys = []; // ordre = ordre de sélection ; la 1re est la catégorie principale (couleur)
 let formImageValue = null;
 let formImagePosition = 'center center';
 
@@ -2848,6 +3262,8 @@ const setCategoryAccordion = setupAccordion('category-toggle', 'category-body');
 const setDescAccordion = setupAccordion('desc-toggle', 'desc-body');
 const setImageAccordion = setupAccordion('image-toggle', 'image-body');
 const setLinkAccordion = setupAccordion('link-toggle', 'link-body');
+const setBibleAccordion = setupAccordion('bible-toggle', 'bible-body');
+fBibleRefs.addEventListener('input', ()=> renderBibleRefs(fBiblePreview, fBibleRefs.value, true));
 const setLocationAccordion = setupAccordion('location-toggle', 'location-body');
 document.getElementById('f-pick-on-map').addEventListener('click', ()=>{
   mapPickForForm = true;
@@ -2865,18 +3281,42 @@ typeSegment.querySelectorAll('.seg-btn').forEach(btn=>{
   });
 });
 
+function toggleFormCat(key){
+  if(selectedCatKeys.includes(key)){
+    selectedCatKeys = selectedCatKeys.filter(k=>k!==key);
+  } else if(key==='sans_categorie'){
+    selectedCatKeys = ['sans_categorie']; // "Sans catégorie" exclut toutes les autres
+  } else {
+    selectedCatKeys = selectedCatKeys.filter(k=>k!=='sans_categorie').concat(key);
+  }
+  renderCatFormChips();
+}
+function makeFormCatPrimary(key){
+  if(!selectedCatKeys.includes(key)) return;
+  selectedCatKeys = [key, ...selectedCatKeys.filter(k=>k!==key)];
+  renderCatFormChips();
+}
 function renderCatFormChips(){
+  selectedCatKeys = selectedCatKeys.filter(k=>CATS[k]);
   catSelectList.querySelectorAll('.cat-form-chip').forEach(el=>el.remove());
   Object.entries(CATS).forEach(([key,c])=>{
+    const selIdx = selectedCatKeys.indexOf(key);
     const chip=document.createElement('div');
-    chip.className='chip cat-form-chip'+(key===selectedCatKey?' active':'');
-    chip.innerHTML=`<span class="dot" style="background:${c.color}"></span>${c.label}`;
-    chip.onclick=()=>{ selectedCatKey=key; renderCatFormChips(); };
+    chip.className='chip cat-form-chip'+(selIdx>=0?' active':'')+(selIdx===0 && selectedCatKeys.length>1?' primary':'');
+    chip.innerHTML=`<span class="dot" style="background:${c.color}"></span>${escapeHtml(c.label)}`
+      + (selIdx===0 && selectedCatKeys.length>1 ? `<span class="cat-primary-star" title="${escapeHtml(T().catPrimaryTitle)}">★</span>` : '')
+      + (selIdx>0 ? `<span class="cat-make-primary" title="${escapeHtml(T().catMakePrimaryTitle)}">☆</span>` : '');
+    chip.onclick=(ev)=>{
+      if(ev.target.closest('.cat-make-primary')){ ev.stopPropagation(); makeFormCatPrimary(key); return; }
+      toggleFormCat(key);
+    };
     catSelectList.insertBefore(chip, catAddBtn);
   });
   const summary = document.getElementById('category-toggle-summary');
-  const current = CATS[selectedCatKey];
-  summary.textContent = current ? `— ${current.label}` : '(aucune sélectionnée)';
+  const labels = selectedCatKeys.map(k=>CATS[k].label);
+  summary.textContent = labels.length ? `— ${labels.join(' · ')}` : T().catNoneSelected;
+  const hint = document.getElementById('cat-multi-hint');
+  if(hint) hint.textContent = T().catMultiHint;
 }
 renderCatFormChips();
 
@@ -2887,7 +3327,8 @@ document.getElementById('new-cat-confirm').addEventListener('click', ()=>{
   const name = document.getElementById('new-cat-name').value.trim();
   const color = document.getElementById('new-cat-color').value;
   if(!name) return;
-  selectedCatKey = addCategory(name, color);
+  const newKey = addCategory(name, color);
+  if(!selectedCatKeys.includes(newKey)) toggleFormCat(newKey);
   document.getElementById('new-cat-name').value='';
   catNewForm.classList.remove('show');
 });
@@ -2994,11 +3435,12 @@ function openEditModal(item){
     fTitle.value = item.t || '';
     fDesc.value = item.d || '';
     fLink.value = item.link || '';
+    fBibleRefs.value = item.bibleRefs || '';
     fLocationName.value = item.locationName || '';
     fLat.value = item.lat!=null ? item.lat : '';
     fLng.value = item.lng!=null ? item.lng : '';
     fApprox.checked = !!item.approx;
-    selectedCatKey = item.cat;
+    selectedCatKeys = itemCats(item).slice();
     formImageValue = item.img || null;
     formImagePosition = item.imgPosition || 'center center';
     fImageUrl.value = (formImageValue && formImageValue.startsWith('http')) ? formImageValue : '';
@@ -3018,9 +3460,9 @@ function openEditModal(item){
   } else {
     editModalTitle.textContent = T().modalAddTitle;
     editingType = 'event';
-    fTitle.value=''; fDesc.value=''; fLink.value=''; fApprox.checked=false;
+    fTitle.value=''; fDesc.value=''; fLink.value=''; fBibleRefs.value=''; fApprox.checked=false;
     fLocationName.value=''; fLat.value=''; fLng.value='';
-    selectedCatKey = 'sans_categorie';
+    selectedCatKeys = [];
     formImageValue = null; formImagePosition = 'center center'; fImagePreview.innerHTML='';
     updateImagePositionUI();
     fillDateInputs(fStartYear,fStartMonth,fStartDay,fStartHour,fStartMinute, null,null,null,null,null);
@@ -3036,6 +3478,8 @@ function openEditModal(item){
   setDescAccordion(!!(item && item.d));
   setImageAccordion(!!(item && item.img));
   setLinkAccordion(!!(item && item.link));
+  setBibleAccordion(!!(item && item.bibleRefs));
+  renderBibleRefs(fBiblePreview, fBibleRefs.value, true);
   setLocationAccordion(!!(item && item.locationName));
   document.getElementById('edit-delete').style.display = item ? 'inline-block' : 'none';
 
@@ -3098,9 +3542,11 @@ document.getElementById('edit-save').addEventListener('click', ()=>{
   }
 
   const approx = fApprox.checked;
-  const cat = selectedCatKey;
+  const cats = selectedCatKeys.length ? selectedCatKeys.slice() : ['sans_categorie'];
+  const cat = cats[0];
   const desc = fDesc.value.trim();
   const link = fLink.value.trim() || null;
+  const bibleRefs = fBibleRefs.value.trim() || null;
   const img = formImageValue;
   const imgPosition = img ? formImagePosition : null;
   const editingId = editingItem ? editingItem.id : null;
@@ -3120,8 +3566,9 @@ document.getElementById('edit-save').addEventListener('click', ()=>{
     const obj = {
       id: editingId || genId('e'), isPeriod:false,
       year:parsedStart.year, month:parsedStart.month, day:parsedStart.day, hour:parsedStart.hour, minute:parsedStart.minute,
-      approx, y:parsedStart.yf, t:title, cat, d:desc, img, imgPosition, link, locationName, lat, lng
+      approx, y:parsedStart.yf, t:title, cat, cats, d:desc, img, imgPosition, link, locationName, lat, lng, bibleRefs
     };
+    normalizeItemCats(obj);
     if(editingItem && wasPeriod===false){
       const idx = EVENTS.findIndex(x=>x.id===obj.id);
       if(idx>=0) EVENTS[idx]=obj; else EVENTS.push(obj);
@@ -3143,8 +3590,9 @@ document.getElementById('edit-save').addEventListener('click', ()=>{
       id: editingId || genId('p'), isPeriod:true,
       startYear:parsedStart.year, startMonth:parsedStart.month, startDay:parsedStart.day, startHour:parsedStart.hour, startMinute:parsedStart.minute,
       endYear:parsedEnd.year, endMonth:parsedEnd.month, endDay:parsedEnd.day, endHour:parsedEnd.hour, endMinute:parsedEnd.minute,
-      approx, start:parsedStart.yf, end:parsedEnd.yf, t:title, cat, d:desc, img, imgPosition, link, locationName, lat, lng
+      approx, start:parsedStart.yf, end:parsedEnd.yf, t:title, cat, cats, d:desc, img, imgPosition, link, locationName, lat, lng, bibleRefs
     };
+    normalizeItemCats(obj);
     if(editingItem && wasPeriod===true){
       const idx = PERIOD_ITEMS.findIndex(x=>x.id===obj.id);
       if(idx>=0) PERIOD_ITEMS[idx]=obj; else PERIOD_ITEMS.push(obj);
@@ -3220,16 +3668,21 @@ function renderSideTable(container, items, query, onSelect){
 function setupListModal({searchInput, catFilterEl, sortEl, tableEl, countEl, getBaseItems, sortFns, defaultSort, onSelect, onCatsChange}){
   const state = {query:'', cats:new Set(), sort:defaultSort};
 
-  if(catFilterEl){
+  // Les puces sont reconstruites à chaque ouverture : elles reflètent ainsi les catégories
+  // chargées depuis le stockage local ou créées depuis (auparavant figées au démarrage)
+  function buildCatChips(){
+    if(!catFilterEl) return;
+    [...state.cats].forEach(k=>{ if(!CATS[k]) state.cats.delete(k); });
+    catFilterEl.innerHTML='';
     Object.entries(CATS).forEach(([key,c])=>{
       const chip=document.createElement('div');
-      chip.className='chip small';
-      chip.innerHTML=`<span class="dot" style="background:${c.color}"></span>${c.label}`;
+      chip.className='chip small'+(state.cats.has(key)?' active':'');
+      chip.innerHTML=`<span class="dot" style="background:${c.color}"></span>${escapeHtml(c.label)}`;
       chip.onclick=()=>{
         if(state.cats.has(key)) state.cats.delete(key); else state.cats.add(key);
         chip.classList.toggle('active', state.cats.has(key));
         if(onCatsChange) onCatsChange(state.cats);
-        refresh();
+        refresh(true);
       };
       catFilterEl.appendChild(chip);
     });
@@ -3243,12 +3696,13 @@ function setupListModal({searchInput, catFilterEl, sortEl, tableEl, countEl, get
     });
   });
 
-  searchInput.addEventListener('input', ()=>{ state.query = searchInput.value.trim(); refresh(); });
+  searchInput.addEventListener('input', ()=>{ state.query = searchInput.value.trim(); refresh(true); });
 
-  function refresh(){
+  function refresh(keepChips){
+    if(!keepChips) buildCatChips();
     const q = normalize(state.query);
     let items = getBaseItems().filter(it=>{
-      if(state.cats.size>0 && !state.cats.has(it.cat)) return false;
+      if(state.cats.size>0 && !itemInCats(it, state.cats)) return false;
       if(q && !normalize(it.t).includes(q)) return false;
       return true;
     });
@@ -3268,7 +3722,7 @@ const charListCtrl = setupListModal({
   sortEl: document.getElementById('characters-sort'),
   tableEl: document.getElementById('characters-table'),
   countEl: document.getElementById('characters-count'),
-  getBaseItems: ()=> ALL_ITEMS.filter(it=>it.cat==='personnage'),
+  getBaseItems: ()=> ALL_ITEMS.filter(it=>itemHasCat(it,'personnage')),
   sortFns: {
     alpha:(a,b)=>a.t.localeCompare(b.t,'fr'),
     date_asc:(a,b)=>sortTimeOf(a)-sortTimeOf(b),
@@ -3325,6 +3779,7 @@ datesOverlay.addEventListener('click', e=>{ if(e.target===datesOverlay) datesOve
 /* ---------- Plan (carte Leaflet) ---------- */
 const mapOverlay = document.getElementById('map-overlay');
 let leafletMap = null, mapMarkersLayer = null, mapInitialFitDone = false;
+let mapShowImages = true; // réglable dans les paramètres (« Images sur la carte »)
 
 // Interpolation entre deux couleurs (façon carte de densité photo : peu d'événements → ambre, beaucoup → rouge)
 function lerpDensityColor(t){
@@ -3336,7 +3791,7 @@ function lerpDensityColor(t){
 function renderMapMarkers(){
   if(!mapMarkersLayer) return;
   mapMarkersLayer.clearLayers();
-  const located = ALL_ITEMS.filter(it=>it.lat!=null && it.lng!=null && activeCats.has(it.cat));
+  const located = ALL_ITEMS.filter(it=>it.lat!=null && it.lng!=null && itemInCats(it, activeCats));
   const emptyNote = document.getElementById('map-empty-note');
   if(located.length===0){
     emptyNote.textContent = "Aucun événement (parmi les catégories actives) ne possède de lieu indexé. Vérifiez les filtres de catégorie, ou ajoutez une latitude/longitude depuis le formulaire d'édition d'un événement.";
@@ -3381,7 +3836,7 @@ function renderMapMarkers(){
     // Palier 3, vue rapprochée : la vraie photo si disponible (même cadrage que partout ailleurs), sinon une bulle pleine + libellé
     located.forEach(it=>{
       let marker;
-      if(it.img){
+      if(it.img && mapShowImages){
         const icon = L.divIcon({
           className: 'map-photo-marker',
           html: `<div class="map-photo-frame" style="border-color:${catOf(it.cat).color}"><img src="${it.img}" alt="" referrerpolicy="no-referrer" style="object-position:${it.imgPosition||'center center'};"></div>`,
@@ -3580,6 +4035,9 @@ async function initStorage(){
       storedCats.forEach(c=>{
         CATS[c.key] = {label:c.label, color:c.color, locked:c.locked||undefined, protected:c.protected||undefined};
       });
+      // Migration douce v0.6 → v0.7 : chaque élément reçoit son tableau de catégories
+      EVENTS.forEach(normalizeItemCats);
+      PERIOD_ITEMS.forEach(normalizeItemCats);
       rebuildAllItems();
       activeCats = new Set(Object.keys(CATS));
       renderFilterChips(); renderSearchCatChips(); renderCatFormChips();
@@ -3595,6 +4053,7 @@ async function initStorage(){
 }
 
 /* ---------- Init ---------- */
+loadSettings();
 resize();
 updateEventCounterBadge();
 initStorage();
