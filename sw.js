@@ -6,7 +6,7 @@
   en cache : elles nécessitent une connexion et sont trop nombreuses/lourdes.
 */
 
-const CACHE_VERSION = 'frise-v1';
+const CACHE_VERSION = 'frise-v0.7';
 const APP_SHELL = [
   './',
   './index.html',
