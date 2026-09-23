@@ -1,7 +1,7 @@
 {
   "name": "Frise Chronologique Interactive",
-  "short_name": "Frise",
-  "description": "Frise chronologique interactive de l'histoire, de -6000 à aujourd'hui.",
+  "short_name": "Bibline",
+  "description": "Frise chronologique interactive",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
