@@ -466,6 +466,11 @@ body.dark-mode .lang-select{background-color:var(--paper-panel);}
   padding:6px 12px;font-size:12px;cursor:pointer;font-family:'Montserrat',sans-serif;
 }
 #cat-add-btn:hover{color:var(--brass);border-color:var(--brass);}
+#cat-manage-btn{
+  border:1px solid var(--line);background:none;color:var(--slate);border-radius:20px;
+  padding:6px 12px;font-size:12px;cursor:pointer;font-family:'Montserrat',sans-serif;
+}
+#cat-manage-btn:hover{color:var(--brass);border-color:var(--brass);}
 #cat-new-form{display:none;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap;}
 #cat-new-form.show{display:flex;}
 #cat-new-form input[type=text]{flex:1 1 140px;width:auto;}
@@ -632,6 +637,34 @@ body.dark-mode .lang-select{background-color:var(--paper-panel);}
 #dbl-refs{flex:none;margin:0 0 6px 0;overflow:hidden;max-height:26px;padding-right:70px;}
 #detail-bar-landscape.expanded #dbl-refs{max-height:none;}
 
+/* ---------- Note et mentions de liens (v0.9) ---------- */
+.note-view{
+  font-size:13px;color:var(--ink-700);line-height:1.7;white-space:pre-wrap;word-break:break-word;
+}
+.note-view:empty{display:none;}
+#d-note{margin:0 0 14px 0;}
+/* Paysage : la note est réservée à la vue détaillée (bouton « Voir plus de détails ») */
+#dbl-note{display:none;font-size:12.5px;margin:0 0 8px 0;}
+#detail-bar-landscape.expanded #dbl-note.has-data{display:block;}
+#f-note-preview{margin-top:8px;}
+#f-note-preview:empty{display:none;}
+.note-mention{
+  display:inline-flex;align-items:center;gap:5px;vertical-align:baseline;
+  max-width:100%;margin:0 1px;padding:1px 8px 2px 7px;border-radius:5px;
+  border:1px solid rgba(138,106,52,0.3);background:rgba(138,106,52,0.08);
+  color:var(--brass);text-decoration:none;font-size:0.92em;line-height:1.5;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.note-mention:hover{background:rgba(138,106,52,0.16);border-color:var(--brass);}
+.note-mention .nm-icon{font-size:0.9em;opacity:0.8;flex:none;}
+.note-mention .nm-label{overflow:hidden;text-overflow:ellipsis;}
+.soon-badge{
+  font-family:'Montserrat',sans-serif;font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;
+  padding:2px 7px;border-radius:20px;border:1px solid rgba(138,106,52,0.35);
+  background:rgba(138,106,52,0.1);color:var(--brass);
+}
+#family-tree-btn{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+
 /* ---------- Paramètres ---------- */
 .settings-row{
   display:flex;align-items:center;justify-content:space-between;gap:14px;
@@ -741,6 +774,7 @@ body.dark-mode .lang-select{background-color:var(--paper-panel);}
           <h3 id="dbl-title"></h3>
           <div id="dbl-refs" class="bible-refs" style="display:none;"></div>
           <p id="dbl-desc"></p>
+          <div id="dbl-note" class="note-view"></div>
           <div id="dbl-link-row" class="dbl-extra-row">
             <a id="dbl-link" href="#" target="_blank" rel="noopener">Voir la source →</a>
           </div>
@@ -793,6 +827,7 @@ body.dark-mode .lang-select{background-color:var(--paper-panel);}
       <span id="edit-btn-label">Modifier</span>
     </button>
     <p id="d-desc"></p>
+    <div id="d-note" class="note-view"></div>
     <a id="d-link" class="d-link" href="#" target="_blank" rel="noopener" style="display:none;">Voir la source →</a>
     <div id="d-nav">
       <button type="button" id="d-prev" class="dbl-icon-btn" title="Événement précédent">
@@ -875,6 +910,7 @@ body.dark-mode .lang-select{background-color:var(--paper-panel);}
         <div class="accordion-body" id="category-body">
           <div class="cat-select-list" id="cat-select-list">
             <button type="button" id="cat-add-btn">+ Nouvelle catégorie</button>
+            <button type="button" id="cat-manage-btn" title="Gérer les catégories">⚙ Gérer les catégories</button>
           </div>
           <div id="cat-multi-hint" class="cat-multi-hint"></div>
           <div id="cat-new-form">
@@ -891,6 +927,17 @@ body.dark-mode .lang-select{background-color:var(--paper-panel);}
         </button>
         <div class="accordion-body" id="desc-body">
           <textarea id="f-desc" placeholder="Notes, description détaillée…"></textarea>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <button type="button" class="accordion-toggle" id="note-toggle">
+          <span class="acc-chevron">▸</span> <span id="note-toggle-label">Note</span> <span class="acc-hint" id="note-toggle-hint">(optionnel)</span>
+        </button>
+        <div class="accordion-body" id="note-body">
+          <textarea id="f-note" placeholder="Note personnelle, réflexions, liens…"></textarea>
+          <div id="f-note-help" class="bible-help">Les adresses internet collées ici s'affichent sous forme de mention compacte.</div>
+          <div id="f-note-preview" class="note-view"></div>
         </div>
       </div>
 
@@ -1045,7 +1092,21 @@ body.dark-mode .lang-select{background-color:var(--paper-panel);}
 
       <div class="settings-row">
         <div>
-          <div class="sr-label" id="mapimg-row-label">Images sur la carte</div>
+          <div class="sr-label" id="timelineimg-row-label">Images sur la frise</div>
+          <span class="sr-sub" id="timelineimg-row-sub">Affiche les vignettes des événements sur la frise (vue rapprochée, paysage)</span>
+        </div>
+        <div class="sr-control">
+          <label class="toggle-switch">
+            <input type="checkbox" id="timeline-images-toggle" checked>
+            <span class="ts-track"></span>
+            <span class="ts-thumb"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="settings-row">
+        <div>
+          <div class="sr-label" id="mapimg-row-label">Images sur le plan</div>
           <span class="sr-sub" id="mapimg-row-sub">Affiche la photo des événements sur le plan (vue rapprochée)</span>
         </div>
         <div class="sr-control">
@@ -1118,7 +1179,7 @@ body.dark-mode .lang-select{background-color:var(--paper-panel);}
       <div class="settings-row" style="border-bottom:none;flex-direction:column;align-items:flex-start;">
         <div class="sr-label" id="mentions-row-label" style="margin-bottom:8px;">Mentions</div>
         <div class="settings-about">
-          <b>Bibline</b> — <span id="app-version-label">v0.8</span><br>
+          <b>Bibline</b> — <span id="app-version-label">v0.9</span><br>
           Application de gestion de connaissances historiques.<br>
           Vos données sont enregistrées automatiquement dans le stockage local de ce navigateur, sur cet appareil. Pour les retrouver sur un autre appareil, utilisez « Envoyer » puis « Recevoir » ci-dessus.
         </div>
@@ -1138,6 +1199,10 @@ body.dark-mode .lang-select{background-color:var(--paper-panel);}
           <button type="button" class="seg-btn" data-sort="date_desc">Date ↓</button>
         </div>
       </div>
+      <button type="button" class="btn-secondary" id="family-tree-btn">
+        <span>🌳</span> <span id="family-tree-label">Arbre généalogique</span> <span class="soon-badge" id="family-tree-soon">bientôt</span>
+      </button>
+      <div id="family-tree-note" class="settings-about" style="display:none;margin-top:8px;">L'arbre généalogique arrivera dans une prochaine version : ce bouton y mènera.</div>
       <div id="characters-count" class="list-count"></div>
       <div id="characters-table" class="side-table"></div>
     </div>
@@ -1183,7 +1248,7 @@ body.dark-mode .lang-select{background-color:var(--paper-panel);}
 <script>
 (function(){
 
-const APP_VERSION = 'v0.7';
+const APP_VERSION = 'v0.9';
 
 const CATS = {
   politique:  {label:"Politique",  color:"#8A6A34"},
@@ -1197,6 +1262,7 @@ const CATS = {
 };
 
 let isDarkMode = false;
+let timelineShowImages = true; // réglage « Images sur la frise »
 const COLORS = {
   ink:'#1E2530', slate:'#5A6275', slateDim:'#93998F',
   brass:'#8A6A34', line:'rgba(138,106,52,0.28)'
@@ -1234,6 +1300,52 @@ function escapeHtml(str){
 
 // Gestion du premier plan pour les modales pouvant s'ouvrir l'une par-dessus l'autre
 // (ex : ajouter un événement depuis la carte, ou choisir un lieu sur la carte depuis le formulaire)
+/* ---------- Notes et mentions de liens (v0.9) ----------
+   Une adresse internet saisie dans une note n'est pas affichée en entier (elle mangerait la ligne) :
+   elle devient une mention compacte, à la manière de Notion — domaine + titre de page deviné d'après
+   la fin de l'adresse. L'adresse complète reste visible en infobulle et au survol. */
+const NOTE_URL_RE = /(?:https?:\/\/|www\.)[^\s<>"']+/gi;
+function mentionLabel(url){
+  try{
+    const u = new URL(url.startsWith('www.') ? 'https://'+url : url);
+    const host = u.hostname.replace(/^www\./,'');
+    const parts = decodeURIComponent(u.pathname).split('/').filter(Boolean);
+    const last = parts.length ? parts[parts.length-1] : '';
+    if(last && last.length<=30 && !/^\d+$/.test(last)){
+      const pretty = last.replace(/\.(html?|php|aspx?|pdf)$/i,'').replace(/[-_]+/g,' ').trim();
+      if(pretty.length>=4) return host+' · '+pretty; // en dessous, c'est presque toujours un code de langue (/fr/, /en/)
+    }
+    return host;
+  }catch(err){
+    return url.replace(/^https?:\/\//,'').slice(0,40);
+  }
+}
+function noteToHtml(text){
+  if(!text) return '';
+  let out='', last=0, m;
+  const re = new RegExp(NOTE_URL_RE.source, 'gi');
+  while((m = re.exec(text))!==null){
+    let raw = m[0], tail='';
+    // La ponctuation finale appartient à la phrase, pas à l'adresse
+    const trail = raw.match(/[.,;:!?»)\]]+$/);
+    if(trail){ tail = trail[0]; raw = raw.slice(0, raw.length-tail.length); }
+    if(!raw) continue;
+    const href = raw.startsWith('www.') ? 'https://'+raw : raw;
+    out += escapeHtml(text.slice(last, m.index));
+    out += `<a class="note-mention" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(href)}">`
+        +  `<span class="nm-icon">🔗</span><span class="nm-label">${escapeHtml(mentionLabel(raw))}</span></a>`;
+    out += escapeHtml(tail);
+    last = m.index + m[0].length;
+  }
+  out += escapeHtml(text.slice(last));
+  return out;
+}
+function renderNote(container, text){
+  const html = noteToHtml((text||'').trim());
+  container.innerHTML = html;
+  container.classList.toggle('has-data', !!html);
+}
+
 let topmostZ = 70;
 function bringToFront(el){ topmostZ++; el.style.zIndex = topmostZ; }
 
@@ -1396,6 +1508,8 @@ let isVertical = false;
 let AXIS_CROSS = 0;
 let ERA_THICKNESS = 220;
 
+let uiReady = false;      // passe à true une fois toute l'interface construite
+let lastVertical = null;  // orientation du rendu précédent, pour ne réagir qu'aux vrais changements
 function updateLayout(){
   isVertical = H > W;
   if(isVertical){
@@ -1408,6 +1522,8 @@ function updateLayout(){
     ERA_THICKNESS = 220;
   }
   document.getElementById('app').classList.toggle('portrait', isVertical);
+  if(lastVertical !== null && lastVertical !== isVertical) syncDetailOrientation();
+  lastVertical = isVertical;
 }
 
 function resize(){
@@ -1794,7 +1910,7 @@ function drawEvents(){
   dimmed.forEach(drawDimmedBubble);
 
   const spanYears = viewEnd-viewStart;
-  const showThumbs = !isVertical && spanYears < 260 && visible.length <= 40;
+  const showThumbs = timelineShowImages && !isVertical && spanYears < 260 && visible.length <= 40;
   const THUMB_W = 90, THUMB_H = 66; // vignettes ~3x plus grandes qu'auparavant (30x22)
   const rowGap = showThumbs ? THUMB_H+14 : 22;
   const markerHalf = showThumbs ? THUMB_W/2 : 7;
@@ -2357,7 +2473,13 @@ const STRINGS = {
     bibleErrBook:"livre non reconnu", bibleErrAmbiguous:(l)=>`abréviation ambiguë (${l}…)`,
     bibleErrChapter:(b,m)=>`${b} ne compte que ${m} chapitre${m>1?'s':''}`, bibleErrOrder:"versets dans le désordre",
     bibleErrFormat:"format non reconnu (ex : Gn 6:9-22)",
-    mapImgLabel:"Images sur la carte", mapImgSub:"Affiche la photo des événements sur le plan (vue rapprochée)",
+    mapImgLabel:"Images sur le plan", mapImgSub:"Affiche la photo des événements sur le plan (vue rapprochée)",
+    timelineImgLabel:"Images sur la frise", timelineImgSub:"Affiche les vignettes des événements sur la frise (vue rapprochée, paysage)",
+    accNote:"Note", noteHelp:"Les adresses internet collées ici s'affichent sous forme de mention compacte.",
+    notePlaceholder:"Note personnelle, réflexions, liens…",
+    catManageBtn:"⚙ Gérer les catégories",
+    familyTreeLabel:"Arbre généalogique", familyTreeSoon:"bientôt",
+    familyTreeNote:"L'arbre généalogique arrivera dans une prochaine version : ce bouton y mènera.",
     bibleRowLabel:"Ouvrir les versets dans", bibleRowSub:"JW Library si l'application est installée, sinon jw.org",
   },
   en:{
@@ -2404,6 +2526,12 @@ const STRINGS = {
     bibleErrChapter:(b,m)=>`${b} only has ${m} chapter${m>1?'s':''}`, bibleErrOrder:"verses out of order",
     bibleErrFormat:"unrecognised format (e.g. Gen 6:9-22)",
     mapImgLabel:"Images on the map", mapImgSub:"Show event photos on the map (close-up view)",
+    timelineImgLabel:"Images on the timeline", timelineImgSub:"Show event thumbnails on the timeline (close-up view, landscape)",
+    accNote:"Note", noteHelp:"Web addresses pasted here appear as a compact mention.",
+    notePlaceholder:"Personal note, thoughts, links…",
+    catManageBtn:"⚙ Manage categories",
+    familyTreeLabel:"Family tree", familyTreeSoon:"soon",
+    familyTreeNote:"The family tree is coming in a future version; this button will lead to it.",
     bibleRowLabel:"Open verses in", bibleRowSub:"JW Library if the app is installed, otherwise jw.org",
   },
   es:{
@@ -2450,6 +2578,12 @@ const STRINGS = {
     bibleErrChapter:(b,m)=>`${b} solo tiene ${m} capítulo${m>1?'s':''}`, bibleErrOrder:"versículos desordenados",
     bibleErrFormat:"formato no reconocido (ej.: Gé 6:9-22)",
     mapImgLabel:"Imágenes en el mapa", mapImgSub:"Muestra la foto de los eventos en el mapa (vista cercana)",
+    timelineImgLabel:"Imágenes en la línea de tiempo", timelineImgSub:"Muestra las miniaturas de los eventos en la línea de tiempo (vista cercana, horizontal)",
+    accNote:"Nota", noteHelp:"Las direcciones de internet pegadas aquí aparecen como una mención compacta.",
+    notePlaceholder:"Nota personal, reflexiones, enlaces…",
+    catManageBtn:"⚙ Gestionar categorías",
+    familyTreeLabel:"Árbol genealógico", familyTreeSoon:"pronto",
+    familyTreeNote:"El árbol genealógico llegará en una próxima versión; este botón llevará a él.",
     bibleRowLabel:"Abrir los versículos en", bibleRowSub:"JW Library si la aplicación está instalada; si no, jw.org",
   },
   zh:{
@@ -2496,6 +2630,12 @@ const STRINGS = {
     bibleErrChapter:(b,m)=>`${b} 只有 ${m} 章`, bibleErrOrder:"经节顺序有误",
     bibleErrFormat:"格式无法识别（例如：Gen 6:9-22）",
     mapImgLabel:"地图上的图片", mapImgSub:"在地图上显示事件照片（放大视图）",
+    timelineImgLabel:"时间轴上的图片", timelineImgSub:"在时间轴上显示事件缩略图（放大视图、横向）",
+    accNote:"笔记", noteHelp:"粘贴到这里的网址会显示为紧凑的提及卡片。",
+    notePlaceholder:"个人笔记、想法、链接…",
+    catManageBtn:"⚙ 管理分类",
+    familyTreeLabel:"家谱", familyTreeSoon:"即将推出",
+    familyTreeNote:"家谱将在后续版本中推出，此按钮届时会打开该视图。",
     bibleRowLabel:"经文打开方式", bibleRowSub:"已安装 JW Library 时使用该应用，否则使用 jw.org",
   }
 };
@@ -2549,6 +2689,16 @@ function applyLanguage(lang){
   document.getElementById('bible-toggle-hint').textContent = s.optionalHint;
   document.getElementById('f-bible-help').textContent = s.bibleHelp;
   document.getElementById('mapimg-row-label').textContent = s.mapImgLabel;
+  document.getElementById('timelineimg-row-label').textContent = s.timelineImgLabel;
+  document.getElementById('timelineimg-row-sub').textContent = s.timelineImgSub;
+  document.getElementById('note-toggle-label').textContent = s.accNote;
+  document.getElementById('note-toggle-hint').textContent = s.optionalHint;
+  document.getElementById('f-note-help').textContent = s.noteHelp;
+  document.getElementById('f-note').placeholder = s.notePlaceholder;
+  document.getElementById('cat-manage-btn').textContent = s.catManageBtn;
+  document.getElementById('family-tree-label').textContent = s.familyTreeLabel;
+  document.getElementById('family-tree-soon').textContent = s.familyTreeSoon;
+  document.getElementById('family-tree-note').textContent = s.familyTreeNote;
   document.getElementById('mapimg-row-sub').textContent = s.mapImgSub;
   document.getElementById('bible-row-label').textContent = s.bibleRowLabel;
   document.getElementById('bible-row-sub').textContent = s.bibleRowSub;
@@ -2594,6 +2744,12 @@ darkModeToggle.addEventListener('change', ()=>{
 });
 
 /* Images sur la carte */
+const timelineImagesToggle = document.getElementById('timeline-images-toggle');
+timelineImagesToggle.addEventListener('change', ()=>{
+  timelineShowImages = timelineImagesToggle.checked;
+  render();
+  saveSettings();
+});
 const mapImagesToggle = document.getElementById('map-images-toggle');
 mapImagesToggle.addEventListener('change', ()=>{
   mapShowImages = mapImagesToggle.checked;
@@ -2613,7 +2769,7 @@ const SETTINGS_KEY = 'frise-settings';
 function saveSettings(){
   try{
     localStorage.setItem(SETTINGS_KEY, JSON.stringify({
-      lang: currentLang, dark: isDarkMode, mapImages: mapShowImages, bibleTarget
+      lang: currentLang, dark: isDarkMode, mapImages: mapShowImages, timelineImages: timelineShowImages, bibleTarget
     }));
   }catch(err){ /* stockage indisponible (navigation privée…) : les réglages restent valables pour la session */ }
 }
@@ -2622,6 +2778,7 @@ function loadSettings(){
   try{ st = JSON.parse(localStorage.getItem(SETTINGS_KEY) || 'null'); }catch(err){ st = null; }
   if(!st) return;
   if(typeof st.mapImages==='boolean'){ mapShowImages = st.mapImages; mapImagesToggle.checked = st.mapImages; }
+  if(typeof st.timelineImages==='boolean'){ timelineShowImages = st.timelineImages; timelineImagesToggle.checked = st.timelineImages; }
   if(st.bibleTarget==='web' || st.bibleTarget==='app'){ bibleTarget = st.bibleTarget; bibleTargetSelect.value = st.bibleTarget; }
   if(st.lang && STRINGS[st.lang]) applyLanguage(st.lang);
   if(typeof st.dark==='boolean' && st.dark!==isDarkMode){
@@ -3058,6 +3215,21 @@ function dateLabelFor(item){
 }
 function sortTimeOf(it){ return it.isPeriod ? it.start : it.y; }
 
+// Bascule le volet ouvert d'une présentation à l'autre quand l'appareil change d'orientation
+function syncDetailOrientation(){
+  if(!uiReady || !currentDetailItem) return;
+  const portraitOpen = detail.classList.contains('open');
+  const landscapeOpen = detailBarLandscape.classList.contains('open');
+  if(isVertical && landscapeOpen){
+    detailBarLandscape.classList.remove('open');
+    detailBarLandscape.classList.remove('expanded');
+    openDetailPanelPortrait(currentDetailItem);
+  } else if(!isVertical && portraitOpen){
+    detail.classList.remove('open');
+    openDetailBarLandscape(currentDetailItem);
+  }
+}
+
 // Point d'entrée unique : choisit la présentation adaptée à l'orientation actuelle
 function openDetail(item){
   currentDetailItem = item;
@@ -3069,6 +3241,7 @@ function openDetailPanelPortrait(item){
   document.getElementById('d-title').textContent=item.t;
   document.getElementById('d-date').textContent = dateLabelFor(item);
   document.getElementById('d-desc').textContent=item.d || '';
+  renderNote(document.getElementById('d-note'), item.note); // portrait : la note reste visible en permanence
   document.getElementById('d-cats').innerHTML = itemCats(item).map((k,i)=>{
     const c = catOf(k);
     const suffix = (i===0 && item.isPeriod) ? ' · '+T().typePeriod : '';
@@ -3077,7 +3250,7 @@ function openDetailPanelPortrait(item){
   renderBibleRefs(document.getElementById('d-refs'), item.bibleRefs, false);
 
   const imgBox = document.getElementById('d-image');
-  imgBox.innerHTML = item.img ? `<img src="${item.img}" alt="" referrerpolicy="no-referrer" style="object-position:${item.imgPosition||'center center'};">` : 'emplacement image';
+  imgBox.innerHTML = item.img ? `<img src="${escapeHtml(item.img)}" alt="" referrerpolicy="no-referrer" style="object-position:${escapeHtml(item.imgPosition||'center center')};">` : 'emplacement image';
 
   const linkEl = document.getElementById('d-link');
   if(item.link){ linkEl.href = item.link; linkEl.style.display = 'inline-block'; }
@@ -3094,6 +3267,8 @@ function openDetailBarLandscape(item){
   document.getElementById('dbl-title').textContent = item.t;
   document.getElementById('dbl-date').textContent = dateLabelFor(item);
   document.getElementById('dbl-desc').textContent = item.d || '';
+  // Paysage : la note n'apparaît qu'en vue détaillée (le CSS la masque tant que le bandeau n'est pas déplié)
+  renderNote(document.getElementById('dbl-note'), item.note);
 
   const era = eraOf(item.isPeriod ? item.start : item.y);
   const metaEl = document.getElementById('dbl-meta');
@@ -3107,7 +3282,7 @@ function openDetailBarLandscape(item){
   renderBibleRefs(document.getElementById('dbl-refs'), item.bibleRefs, false);
 
   const imgBox = document.getElementById('dbl-image');
-  imgBox.innerHTML = item.img ? `<img src="${item.img}" alt="" referrerpolicy="no-referrer" style="object-position:${item.imgPosition||'center center'};">` : 'emplacement image';
+  imgBox.innerHTML = item.img ? `<img src="${escapeHtml(item.img)}" alt="" referrerpolicy="no-referrer" style="object-position:${escapeHtml(item.imgPosition||'center center')};">` : 'emplacement image';
 
   const locWrap = document.getElementById('dbl-location-wrap');
   const locEl = document.getElementById('dbl-location');
@@ -3143,7 +3318,7 @@ document.getElementById('dbl-edit').onclick = ()=>{
 document.getElementById('dbl-map-btn').onclick = ()=>{
   const item = currentDetailItem;
   if(!item || item.lat==null || item.lng==null) return;
-  openMapModal(()=> leafletMap.setView([item.lat, item.lng], 12));
+  openMapModal({focus:[item.lat, item.lng]});
 };
 document.getElementById('dbl-prev').addEventListener('click', ()=> navigateRelative(-1));
 document.getElementById('d-prev').addEventListener('click', ()=> navigateRelative(-1));
@@ -3151,7 +3326,7 @@ document.getElementById('d-next').addEventListener('click', ()=> navigateRelativ
 document.getElementById('d-map-btn').onclick = ()=>{
   const item = currentDetailItem;
   if(!item || item.lat==null || item.lng==null) return;
-  openMapModal(()=> leafletMap.setView([item.lat, item.lng], 12));
+  openMapModal({focus:[item.lat, item.lng]});
 };
 document.getElementById('dbl-next').addEventListener('click', ()=> navigateRelative(1));
 function navigateRelative(delta){
@@ -3195,6 +3370,8 @@ const fImage = document.getElementById('f-image');
 const fImageUrl = document.getElementById('f-image-url');
 const fImagePreview = document.getElementById('f-image-preview');
 const fLink = document.getElementById('f-link');
+const fNote = document.getElementById('f-note');
+const fNotePreview = document.getElementById('f-note-preview');
 const fBibleRefs = document.getElementById('f-bible-refs');
 const fBiblePreview = document.getElementById('f-bible-preview');
 const fLocationName = document.getElementById('f-location-name');
@@ -3263,6 +3440,8 @@ const setDescAccordion = setupAccordion('desc-toggle', 'desc-body');
 const setImageAccordion = setupAccordion('image-toggle', 'image-body');
 const setLinkAccordion = setupAccordion('link-toggle', 'link-body');
 const setBibleAccordion = setupAccordion('bible-toggle', 'bible-body');
+const setNoteAccordion = setupAccordion('note-toggle', 'note-body');
+fNote.addEventListener('input', ()=> renderNote(fNotePreview, fNote.value));
 fBibleRefs.addEventListener('input', ()=> renderBibleRefs(fBiblePreview, fBibleRefs.value, true));
 const setLocationAccordion = setupAccordion('location-toggle', 'location-body');
 document.getElementById('f-pick-on-map').addEventListener('click', ()=>{
@@ -3323,6 +3502,12 @@ renderCatFormChips();
 catAddBtn.addEventListener('click', ()=>{
   catNewForm.classList.toggle('show');
 });
+// Gestion des catégories accessible directement depuis le formulaire (et plus seulement depuis les filtres)
+document.getElementById('cat-manage-btn').addEventListener('click', ()=>{
+  renderCatManageList();
+  catmanageOverlay.classList.add('open');
+  bringToFront(catmanageOverlay); // doit passer au-dessus du formulaire déjà ouvert
+});
 document.getElementById('new-cat-confirm').addEventListener('click', ()=>{
   const name = document.getElementById('new-cat-name').value.trim();
   const color = document.getElementById('new-cat-color').value;
@@ -3340,7 +3525,7 @@ fImage.addEventListener('change', ()=>{
   reader.onload = ()=>{
     formImageValue = reader.result;
     fImageUrl.value = '';
-    fImagePreview.innerHTML = `<img src="${formImageValue}" alt="" style="object-position:${formImagePosition};">`;
+    fImagePreview.innerHTML = `<img src="${escapeHtml(formImageValue)}" alt="" style="object-position:${escapeHtml(formImagePosition)};">`;
     updateImagePositionUI();
   };
   reader.readAsDataURL(file);
@@ -3436,6 +3621,7 @@ function openEditModal(item){
     fDesc.value = item.d || '';
     fLink.value = item.link || '';
     fBibleRefs.value = item.bibleRefs || '';
+    fNote.value = item.note || '';
     fLocationName.value = item.locationName || '';
     fLat.value = item.lat!=null ? item.lat : '';
     fLng.value = item.lng!=null ? item.lng : '';
@@ -3444,7 +3630,7 @@ function openEditModal(item){
     formImageValue = item.img || null;
     formImagePosition = item.imgPosition || 'center center';
     fImageUrl.value = (formImageValue && formImageValue.startsWith('http')) ? formImageValue : '';
-    fImagePreview.innerHTML = formImageValue ? `<img src="${formImageValue}" alt="" style="object-position:${formImagePosition};">` : '';
+    fImagePreview.innerHTML = formImageValue ? `<img src="${escapeHtml(formImageValue)}" alt="" style="object-position:${escapeHtml(formImagePosition)};">` : '';
     updateImagePositionUI();
 
     if(item.isPeriod){
@@ -3460,7 +3646,7 @@ function openEditModal(item){
   } else {
     editModalTitle.textContent = T().modalAddTitle;
     editingType = 'event';
-    fTitle.value=''; fDesc.value=''; fLink.value=''; fBibleRefs.value=''; fApprox.checked=false;
+    fTitle.value=''; fDesc.value=''; fLink.value=''; fBibleRefs.value=''; fNote.value=''; fApprox.checked=false;
     fLocationName.value=''; fLat.value=''; fLng.value='';
     selectedCatKeys = [];
     formImageValue = null; formImagePosition = 'center center'; fImagePreview.innerHTML='';
@@ -3480,6 +3666,8 @@ function openEditModal(item){
   setLinkAccordion(!!(item && item.link));
   setBibleAccordion(!!(item && item.bibleRefs));
   renderBibleRefs(fBiblePreview, fBibleRefs.value, true);
+  setNoteAccordion(!!(item && item.note));
+  renderNote(fNotePreview, fNote.value);
   setLocationAccordion(!!(item && item.locationName));
   document.getElementById('edit-delete').style.display = item ? 'inline-block' : 'none';
 
@@ -3547,6 +3735,7 @@ document.getElementById('edit-save').addEventListener('click', ()=>{
   const desc = fDesc.value.trim();
   const link = fLink.value.trim() || null;
   const bibleRefs = fBibleRefs.value.trim() || null;
+  const note = fNote.value.trim() || null;
   const img = formImageValue;
   const imgPosition = img ? formImagePosition : null;
   const editingId = editingItem ? editingItem.id : null;
@@ -3566,7 +3755,7 @@ document.getElementById('edit-save').addEventListener('click', ()=>{
     const obj = {
       id: editingId || genId('e'), isPeriod:false,
       year:parsedStart.year, month:parsedStart.month, day:parsedStart.day, hour:parsedStart.hour, minute:parsedStart.minute,
-      approx, y:parsedStart.yf, t:title, cat, cats, d:desc, img, imgPosition, link, locationName, lat, lng, bibleRefs
+      approx, y:parsedStart.yf, t:title, cat, cats, d:desc, img, imgPosition, link, locationName, lat, lng, bibleRefs, note
     };
     normalizeItemCats(obj);
     if(editingItem && wasPeriod===false){
@@ -3590,7 +3779,7 @@ document.getElementById('edit-save').addEventListener('click', ()=>{
       id: editingId || genId('p'), isPeriod:true,
       startYear:parsedStart.year, startMonth:parsedStart.month, startDay:parsedStart.day, startHour:parsedStart.hour, startMinute:parsedStart.minute,
       endYear:parsedEnd.year, endMonth:parsedEnd.month, endDay:parsedEnd.day, endHour:parsedEnd.hour, endMinute:parsedEnd.minute,
-      approx, start:parsedStart.yf, end:parsedEnd.yf, t:title, cat, cats, d:desc, img, imgPosition, link, locationName, lat, lng, bibleRefs
+      approx, start:parsedStart.yf, end:parsedEnd.yf, t:title, cat, cats, d:desc, img, imgPosition, link, locationName, lat, lng, bibleRefs, note
     };
     normalizeItemCats(obj);
     if(editingItem && wasPeriod===true){
@@ -3764,7 +3953,13 @@ document.addEventListener('click', e=>{
 
 document.getElementById('rail-characters').addEventListener('click', ()=>{
   charListCtrl.refresh();
+  document.getElementById('family-tree-note').style.display = 'none';
   characterOverlay.classList.add('open');
+});
+// Emplacement réservé : la vue « arbre généalogique » arrivera dans une prochaine version
+document.getElementById('family-tree-btn').addEventListener('click', ()=>{
+  const note = document.getElementById('family-tree-note');
+  note.style.display = note.style.display==='block' ? 'none' : 'block';
 });
 document.getElementById('characters-close').onclick = ()=> characterOverlay.classList.remove('open');
 characterOverlay.addEventListener('click', e=>{ if(e.target===characterOverlay) characterOverlay.classList.remove('open'); });
@@ -3779,7 +3974,7 @@ datesOverlay.addEventListener('click', e=>{ if(e.target===datesOverlay) datesOve
 /* ---------- Plan (carte Leaflet) ---------- */
 const mapOverlay = document.getElementById('map-overlay');
 let leafletMap = null, mapMarkersLayer = null, mapInitialFitDone = false;
-let mapShowImages = true; // réglable dans les paramètres (« Images sur la carte »)
+let mapShowImages = true; // réglage « Images sur le plan »
 
 // Interpolation entre deux couleurs (façon carte de densité photo : peu d'événements → ambre, beaucoup → rouge)
 function lerpDensityColor(t){
@@ -3839,7 +4034,7 @@ function renderMapMarkers(){
       if(it.img && mapShowImages){
         const icon = L.divIcon({
           className: 'map-photo-marker',
-          html: `<div class="map-photo-frame" style="border-color:${catOf(it.cat).color}"><img src="${it.img}" alt="" referrerpolicy="no-referrer" style="object-position:${it.imgPosition||'center center'};"></div>`,
+          html: `<div class="map-photo-frame" style="border-color:${catOf(it.cat).color}"><img src="${escapeHtml(it.img)}" alt="" referrerpolicy="no-referrer" style="object-position:${escapeHtml(it.imgPosition||'center center')};"></div>`,
           iconSize:[44,44], iconAnchor:[22,22]
         });
         marker = L.marker([it.lat, it.lng], {icon}).addTo(mapMarkersLayer);
@@ -3868,7 +4063,17 @@ function setMapAddMode(on){
 }
 
 let mapPickForForm = false;
-function openMapModal(onReady){
+/* Ouverture du plan.
+   opts.focus = [lat, lng] : le plan s'ouvre directement sur ce lieu.
+   Correctif v0.9 : auparavant le cadrage automatique sur l'ensemble des lieux (fitBounds) était lancé
+   juste avant le centrage sur l'événement ; son animation écrasait parfois ce centrage et le plan
+   s'ouvrait sur le monde entier. Désormais, quand un lieu est demandé, aucun cadrage automatique n'est
+   lancé, le centrage est immédiat (sans animation), et la taille réelle du conteneur est recalculée
+   avant puis après l'apparition de la fenêtre — le conteneur n'ayant pas encore ses dimensions
+   définitives à la toute première ouverture. */
+function openMapModal(opts){
+  const focus = (opts && opts.focus) || null;
+  const focusZoom = (opts && opts.zoom) || 12;
   mapOverlay.classList.add('open');
   bringToFront(mapOverlay);
   setMapAddMode(false);
@@ -3904,12 +4109,17 @@ function openMapModal(onReady){
         fLng.value = ev.latlng.lng.toFixed(5);
         setLocationAccordion(true);
       });
-    } else {
-      leafletMap.invalidateSize();
     }
-    mapInitialFitDone = false;
+    const applyView = ()=>{
+      leafletMap.invalidateSize();
+      if(focus) leafletMap.setView(focus, focusZoom, {animate:false});
+    };
+    mapInitialFitDone = !!focus; // un lieu demandé l'emporte sur le cadrage automatique
+    applyView();
     renderMapMarkers();
-    if(onReady) onReady();
+    // Deuxième passe : à la toute première ouverture, la fenêtre vient d'apparaître et ses dimensions
+    // finales ne sont connues qu'après le rendu ; sans cela le plan reste parfois cadré de travers.
+    setTimeout(applyView, 180);
   });
 }
 document.getElementById('rail-map').addEventListener('click', ()=> openMapModal());
@@ -4053,7 +4263,9 @@ async function initStorage(){
 }
 
 /* ---------- Init ---------- */
+document.getElementById('app-version-label').textContent = APP_VERSION;
 loadSettings();
+uiReady = true;
 resize();
 updateEventCounterBadge();
 initStorage();
