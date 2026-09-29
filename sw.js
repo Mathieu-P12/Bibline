@@ -6,7 +6,7 @@
   en cache : elles nécessitent une connexion et sont trop nombreuses/lourdes.
 */
 
-const CACHE_VERSION = 'bibline-v0.9';
+const CACHE_VERSION = 'bibline-v0.9.1';
 const APP_SHELL = [
   './',
   './index.html',

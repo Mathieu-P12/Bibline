@@ -238,6 +238,11 @@ canvas.dragging{cursor:grabbing;}
 #app.portrait .title{
   display:none;
 }
+/* Paysage : le titre et la période s'effacent pendant la consultation d'un élément, qu'ils chevauchaient.
+   On garde leur place (visibility plutôt que display) pour que la recherche ne saute pas d'un bord à l'autre. */
+#app:not(.portrait).detail-bar-open .title{
+  visibility:hidden;
+}
 #app.portrait #topbar{
   position:relative;order:-1;flex:none;
   justify-content:center;pointer-events:auto;
@@ -455,7 +460,10 @@ canvas.dragging{cursor:grabbing;}
 .lang-select:focus{border-color:var(--brass);}
 body.dark-mode .lang-select{background-color:var(--paper-panel);}
 
-.date-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.date-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:center;}
+/* Choix de l'ère : le clavier numérique des tablettes n'offre pas la touche « - » */
+.era-segment{width:100%;}
+.era-segment .seg-btn{flex:1 1 0;padding:8px 4px;font-size:12px;white-space:nowrap;}
 .date-fields .full-span{grid-column:1/-1;}
 .date-fields-sub{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px;}
 
@@ -663,7 +671,9 @@ body.dark-mode .lang-select{background-color:var(--paper-panel);}
   padding:2px 7px;border-radius:20px;border:1px solid rgba(138,106,52,0.35);
   background:rgba(138,106,52,0.1);color:var(--brass);
 }
-#family-tree-btn{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+/* Ligne « tris + arbre généalogique » de la liste des personnages */
+.list-toolbar-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+#family-tree-btn{display:inline-flex;align-items:center;gap:7px;padding:8px 14px;}
 
 /* ---------- Paramètres ---------- */
 .settings-row{
@@ -864,7 +874,11 @@ body.dark-mode .lang-select{background-color:var(--paper-panel);}
       <div class="form-row" id="start-date-row">
         <label id="start-date-label">Date *</label>
         <div class="date-fields">
-          <input id="f-start-year" type="number" placeholder="Année (ex: -3200)">
+          <input id="f-start-year" type="text" inputmode="numeric" autocomplete="off" placeholder="Année (ex : 3200)">
+          <div class="segmented era-segment" id="start-era">
+            <button type="button" class="seg-btn" data-era="bce">av. n. è.</button>
+            <button type="button" class="seg-btn active" data-era="ce">de n. è.</button>
+          </div>
         </div>
         <div class="date-fields" id="start-month-wrap" style="display:none;margin-top:8px;">
           <select id="f-start-month">
@@ -883,7 +897,11 @@ body.dark-mode .lang-select{background-color:var(--paper-panel);}
       <div class="form-row" id="end-date-row" style="display:none;">
         <label>Date de fin *</label>
         <div class="date-fields">
-          <input id="f-end-year" type="number" placeholder="Année (ex: 1918)">
+          <input id="f-end-year" type="text" inputmode="numeric" autocomplete="off" placeholder="Année (ex : 1918)">
+          <div class="segmented era-segment" id="end-era">
+            <button type="button" class="seg-btn" data-era="bce">av. n. è.</button>
+            <button type="button" class="seg-btn active" data-era="ce">de n. è.</button>
+          </div>
         </div>
         <div class="date-fields" id="end-month-wrap" style="display:none;margin-top:8px;">
           <select id="f-end-month">
@@ -1106,20 +1124,6 @@ body.dark-mode .lang-select{background-color:var(--paper-panel);}
 
       <div class="settings-row">
         <div>
-          <div class="sr-label" id="mapimg-row-label">Images sur le plan</div>
-          <span class="sr-sub" id="mapimg-row-sub">Affiche la photo des événements sur le plan (vue rapprochée)</span>
-        </div>
-        <div class="sr-control">
-          <label class="toggle-switch">
-            <input type="checkbox" id="map-images-toggle" checked>
-            <span class="ts-track"></span>
-            <span class="ts-thumb"></span>
-          </label>
-        </div>
-      </div>
-
-      <div class="settings-row">
-        <div>
           <div class="sr-label" id="bible-row-label">Ouvrir les versets dans</div>
           <span class="sr-sub" id="bible-row-sub">JW Library si l'application est installée, sinon jw.org</span>
         </div>
@@ -1179,7 +1183,7 @@ body.dark-mode .lang-select{background-color:var(--paper-panel);}
       <div class="settings-row" style="border-bottom:none;flex-direction:column;align-items:flex-start;">
         <div class="sr-label" id="mentions-row-label" style="margin-bottom:8px;">Mentions</div>
         <div class="settings-about">
-          <b>Bibline</b> — <span id="app-version-label">v0.9</span><br>
+          <b>Bibline</b> — <span id="app-version-label">v0.9.1</span><br>
           Application de gestion de connaissances historiques.<br>
           Vos données sont enregistrées automatiquement dans le stockage local de ce navigateur, sur cet appareil. Pour les retrouver sur un autre appareil, utilisez « Envoyer » puis « Recevoir » ci-dessus.
         </div>
@@ -1193,15 +1197,17 @@ body.dark-mode .lang-select{background-color:var(--paper-panel);}
       <h2 id="characters-modal-title">Liste des personnages</h2>
       <div class="list-toolbar">
         <input type="text" class="list-search" id="characters-search" placeholder="Rechercher…">
-        <div class="segmented list-sort" id="characters-sort">
-          <button type="button" class="seg-btn active" data-sort="alpha">A–Z</button>
-          <button type="button" class="seg-btn" data-sort="date_asc">Date ↑</button>
-          <button type="button" class="seg-btn" data-sort="date_desc">Date ↓</button>
+        <div class="list-toolbar-row">
+          <div class="segmented list-sort" id="characters-sort">
+            <button type="button" class="seg-btn active" data-sort="alpha">A–Z</button>
+            <button type="button" class="seg-btn" data-sort="date_asc">Date ↑</button>
+            <button type="button" class="seg-btn" data-sort="date_desc">Date ↓</button>
+          </div>
+          <button type="button" class="btn-secondary" id="family-tree-btn" title="Arbre généalogique">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;flex:none;"><circle cx="12" cy="4.6" r="2.3"/><circle cx="5.6" cy="19.4" r="2.3"/><circle cx="18.4" cy="19.4" r="2.3"/><path d="M12 6.9v4.7"/><path d="M5.6 17.1v-3.1a2.4 2.4 0 0 1 2.4-2.4h8a2.4 2.4 0 0 1 2.4 2.4v3.1"/></svg> <span id="family-tree-label">Arbre généalogique</span> <span class="soon-badge" id="family-tree-soon">bientôt</span>
+          </button>
         </div>
       </div>
-      <button type="button" class="btn-secondary" id="family-tree-btn">
-        <span>🌳</span> <span id="family-tree-label">Arbre généalogique</span> <span class="soon-badge" id="family-tree-soon">bientôt</span>
-      </button>
       <div id="family-tree-note" class="settings-about" style="display:none;margin-top:8px;">L'arbre généalogique arrivera dans une prochaine version : ce bouton y mènera.</div>
       <div id="characters-count" class="list-count"></div>
       <div id="characters-table" class="side-table"></div>
@@ -1248,7 +1254,7 @@ body.dark-mode .lang-select{background-color:var(--paper-panel);}
 <script>
 (function(){
 
-const APP_VERSION = 'v0.9';
+const APP_VERSION = 'v0.9.1';
 
 const CATS = {
   politique:  {label:"Politique",  color:"#8A6A34"},
@@ -2473,7 +2479,6 @@ const STRINGS = {
     bibleErrBook:"livre non reconnu", bibleErrAmbiguous:(l)=>`abréviation ambiguë (${l}…)`,
     bibleErrChapter:(b,m)=>`${b} ne compte que ${m} chapitre${m>1?'s':''}`, bibleErrOrder:"versets dans le désordre",
     bibleErrFormat:"format non reconnu (ex : Gn 6:9-22)",
-    mapImgLabel:"Images sur le plan", mapImgSub:"Affiche la photo des événements sur le plan (vue rapprochée)",
     timelineImgLabel:"Images sur la frise", timelineImgSub:"Affiche les vignettes des événements sur la frise (vue rapprochée, paysage)",
     accNote:"Note", noteHelp:"Les adresses internet collées ici s'affichent sous forme de mention compacte.",
     notePlaceholder:"Note personnelle, réflexions, liens…",
@@ -2525,7 +2530,6 @@ const STRINGS = {
     bibleErrBook:"unknown book", bibleErrAmbiguous:(l)=>`ambiguous abbreviation (${l}…)`,
     bibleErrChapter:(b,m)=>`${b} only has ${m} chapter${m>1?'s':''}`, bibleErrOrder:"verses out of order",
     bibleErrFormat:"unrecognised format (e.g. Gen 6:9-22)",
-    mapImgLabel:"Images on the map", mapImgSub:"Show event photos on the map (close-up view)",
     timelineImgLabel:"Images on the timeline", timelineImgSub:"Show event thumbnails on the timeline (close-up view, landscape)",
     accNote:"Note", noteHelp:"Web addresses pasted here appear as a compact mention.",
     notePlaceholder:"Personal note, thoughts, links…",
@@ -2577,7 +2581,6 @@ const STRINGS = {
     bibleErrBook:"libro no reconocido", bibleErrAmbiguous:(l)=>`abreviatura ambigua (${l}…)`,
     bibleErrChapter:(b,m)=>`${b} solo tiene ${m} capítulo${m>1?'s':''}`, bibleErrOrder:"versículos desordenados",
     bibleErrFormat:"formato no reconocido (ej.: Gé 6:9-22)",
-    mapImgLabel:"Imágenes en el mapa", mapImgSub:"Muestra la foto de los eventos en el mapa (vista cercana)",
     timelineImgLabel:"Imágenes en la línea de tiempo", timelineImgSub:"Muestra las miniaturas de los eventos en la línea de tiempo (vista cercana, horizontal)",
     accNote:"Nota", noteHelp:"Las direcciones de internet pegadas aquí aparecen como una mención compacta.",
     notePlaceholder:"Nota personal, reflexiones, enlaces…",
@@ -2629,7 +2632,6 @@ const STRINGS = {
     bibleErrBook:"无法识别书卷", bibleErrAmbiguous:(l)=>`缩写不明确（${l}…）`,
     bibleErrChapter:(b,m)=>`${b} 只有 ${m} 章`, bibleErrOrder:"经节顺序有误",
     bibleErrFormat:"格式无法识别（例如：Gen 6:9-22）",
-    mapImgLabel:"地图上的图片", mapImgSub:"在地图上显示事件照片（放大视图）",
     timelineImgLabel:"时间轴上的图片", timelineImgSub:"在时间轴上显示事件缩略图（放大视图、横向）",
     accNote:"笔记", noteHelp:"粘贴到这里的网址会显示为紧凑的提及卡片。",
     notePlaceholder:"个人笔记、想法、链接…",
@@ -2688,7 +2690,6 @@ function applyLanguage(lang){
   document.getElementById('bible-toggle-label').textContent = s.accBible;
   document.getElementById('bible-toggle-hint').textContent = s.optionalHint;
   document.getElementById('f-bible-help').textContent = s.bibleHelp;
-  document.getElementById('mapimg-row-label').textContent = s.mapImgLabel;
   document.getElementById('timelineimg-row-label').textContent = s.timelineImgLabel;
   document.getElementById('timelineimg-row-sub').textContent = s.timelineImgSub;
   document.getElementById('note-toggle-label').textContent = s.accNote;
@@ -2699,7 +2700,6 @@ function applyLanguage(lang){
   document.getElementById('family-tree-label').textContent = s.familyTreeLabel;
   document.getElementById('family-tree-soon').textContent = s.familyTreeSoon;
   document.getElementById('family-tree-note').textContent = s.familyTreeNote;
-  document.getElementById('mapimg-row-sub').textContent = s.mapImgSub;
   document.getElementById('bible-row-label').textContent = s.bibleRowLabel;
   document.getElementById('bible-row-sub').textContent = s.bibleRowSub;
   renderCatFormChips();
@@ -2750,12 +2750,6 @@ timelineImagesToggle.addEventListener('change', ()=>{
   render();
   saveSettings();
 });
-const mapImagesToggle = document.getElementById('map-images-toggle');
-mapImagesToggle.addEventListener('change', ()=>{
-  mapShowImages = mapImagesToggle.checked;
-  if(mapMarkersLayer) renderMapMarkers();
-  saveSettings();
-});
 /* Ouverture des versets : JW Library ou jw.org */
 const bibleTargetSelect = document.getElementById('bible-target-select');
 bibleTargetSelect.addEventListener('change', ()=>{
@@ -2769,7 +2763,7 @@ const SETTINGS_KEY = 'frise-settings';
 function saveSettings(){
   try{
     localStorage.setItem(SETTINGS_KEY, JSON.stringify({
-      lang: currentLang, dark: isDarkMode, mapImages: mapShowImages, timelineImages: timelineShowImages, bibleTarget
+      lang: currentLang, dark: isDarkMode, timelineImages: timelineShowImages, bibleTarget
     }));
   }catch(err){ /* stockage indisponible (navigation privée…) : les réglages restent valables pour la session */ }
 }
@@ -2777,7 +2771,6 @@ function loadSettings(){
   let st = null;
   try{ st = JSON.parse(localStorage.getItem(SETTINGS_KEY) || 'null'); }catch(err){ st = null; }
   if(!st) return;
-  if(typeof st.mapImages==='boolean'){ mapShowImages = st.mapImages; mapImagesToggle.checked = st.mapImages; }
   if(typeof st.timelineImages==='boolean'){ timelineShowImages = st.timelineImages; timelineImagesToggle.checked = st.timelineImages; }
   if(st.bibleTarget==='web' || st.bibleTarget==='app'){ bibleTarget = st.bibleTarget; bibleTargetSelect.value = st.bibleTarget; }
   if(st.lang && STRINGS[st.lang]) applyLanguage(st.lang);
@@ -3221,8 +3214,7 @@ function syncDetailOrientation(){
   const portraitOpen = detail.classList.contains('open');
   const landscapeOpen = detailBarLandscape.classList.contains('open');
   if(isVertical && landscapeOpen){
-    detailBarLandscape.classList.remove('open');
-    detailBarLandscape.classList.remove('expanded');
+    setLandscapeBarOpen(false);
     openDetailPanelPortrait(currentDetailItem);
   } else if(!isVertical && portraitOpen){
     detail.classList.remove('open');
@@ -3263,6 +3255,14 @@ function openDetailPanelPortrait(item){
 }
 
 const detailBarLandscape = document.getElementById('detail-bar-landscape');
+const appEl = document.getElementById('app');
+// Ouverture / fermeture du bandeau paysage, en un seul endroit : le titre de l'application
+// se retire en même temps, sinon il se superpose à la frise une fois la place réduite.
+function setLandscapeBarOpen(open){
+  detailBarLandscape.classList.toggle('open', open);
+  if(!open) detailBarLandscape.classList.remove('expanded');
+  appEl.classList.toggle('detail-bar-open', open);
+}
 function openDetailBarLandscape(item){
   document.getElementById('dbl-title').textContent = item.t;
   document.getElementById('dbl-date').textContent = dateLabelFor(item);
@@ -3302,12 +3302,9 @@ function openDetailBarLandscape(item){
 
   detailBarLandscape.classList.remove('expanded');
   document.getElementById('dbl-expand-label').textContent = T().expandMoreLabel;
-  detailBarLandscape.classList.add('open');
+  setLandscapeBarOpen(true);
 }
-document.getElementById('dbl-close').onclick = ()=>{
-  detailBarLandscape.classList.remove('open');
-  detailBarLandscape.classList.remove('expanded');
-};
+document.getElementById('dbl-close').onclick = ()=> setLandscapeBarOpen(false);
 document.getElementById('dbl-expand-toggle').onclick = ()=>{
   const expanded = detailBarLandscape.classList.toggle('expanded');
   document.getElementById('dbl-expand-label').textContent = expanded ? T().expandLessLabel : T().expandMoreLabel;
@@ -3395,6 +3392,34 @@ let formImagePosition = 'center center';
     sel.appendChild(opt);
   });
 });
+
+/* Ère de la date : « av. n. è. » ou « de n. è. ».
+   Le champ « Année » ne reçoit donc qu'un nombre positif, car le clavier numérique des téléphones et
+   tablettes ne propose pas la touche « - ». Au clavier physique, saisir « -3200 » reste possible :
+   le signe bascule automatiquement le sélecteur et disparaît du champ. */
+function eraBtns(prefix){ return document.getElementById(prefix+'-era').querySelectorAll('.seg-btn'); }
+function isBce(prefix){
+  const active = document.querySelector('#'+prefix+'-era .seg-btn.active');
+  return !!active && active.dataset.era==='bce';
+}
+function setEra(prefix, bce){
+  eraBtns(prefix).forEach(b=> b.classList.toggle('active', (b.dataset.era==='bce')===!!bce));
+}
+['start','end'].forEach(prefix=>{
+  eraBtns(prefix).forEach(btn=>{
+    btn.addEventListener('click', ()=> setEra(prefix, btn.dataset.era==='bce'));
+  });
+});
+function wireYearInput(prefix, inp){
+  inp.addEventListener('input', ()=>{
+    const raw = inp.value;
+    const cleaned = raw.replace(/[^\d]/g,'');
+    if(/-/.test(raw)) setEra(prefix, true);
+    if(cleaned !== raw) inp.value = cleaned;
+  });
+}
+wireYearInput('start', fStartYear);
+wireYearInput('end', fEndYear);
 
 // Révélation progressive réelle : année saisie → affiche le mois ; mois choisi → affiche le jour ; jour saisi → affiche heure/minute
 function wireProgressiveDate(prefix, yearInp, monthSel, dayInp, hourInp, minInp){
@@ -3597,13 +3622,14 @@ function clearFormError(){
 }
 
 function fillDateInputs(yearInp,monthSel,dayInp,hourInp,minInp, year,month,day,hour,minute){
-  yearInp.value = year!=null ? year : '';
+  const prefix = (yearInp===fStartYear) ? 'start' : 'end';
+  yearInp.value = year!=null ? Math.abs(year) : '';
+  setEra(prefix, year!=null && year<0);
   monthSel.value = month!=null ? String(month) : '';
   dayInp.value = day!=null ? day : '';
   hourInp.value = hour!=null ? hour : '';
   minInp.value = minute!=null ? minute : '';
 
-  const prefix = (yearInp===fStartYear) ? 'start' : 'end';
   document.getElementById(prefix+'-month-wrap').style.display = (year!=null) ? '' : 'none';
   document.getElementById(prefix+'-day-wrap').style.display = (month!=null) ? '' : 'none';
   document.getElementById(prefix+'-time-wrap').style.display = (day!=null) ? '' : 'none';
@@ -3684,9 +3710,10 @@ document.getElementById('edit-cancel').onclick = closeEditModal;
 // (fermeture possible via le bouton ✕ ou "Annuler")
 
 function parseDateFields(yearEl,monthEl,dayEl,hourEl,minuteEl){
+  const prefix = (yearEl===fStartYear) ? 'start' : 'end';
   const yearStr = yearEl.value.trim();
   if(yearStr===''||isNaN(parseInt(yearStr,10))) return null;
-  const year = parseInt(yearStr,10);
+  const year = Math.abs(parseInt(yearStr,10)) * (isBce(prefix) ? -1 : 1);
   let month=null, day=null, hour=null, minute=null, yf=year;
   const monthVal = monthEl.value;
   if(monthVal!==''){
@@ -3818,8 +3845,7 @@ document.getElementById('edit-delete').addEventListener('click', ()=>{
   // Ferme aussi l'affichage détail si l'élément supprimé y était présenté
   if(currentDetailItem && currentDetailItem.id===editingItem.id){
     detail.classList.remove('open');
-    detailBarLandscape.classList.remove('open');
-    detailBarLandscape.classList.remove('expanded');
+    setLandscapeBarOpen(false);
     currentDetailItem = null;
   }
   render();
@@ -3974,7 +4000,6 @@ datesOverlay.addEventListener('click', e=>{ if(e.target===datesOverlay) datesOve
 /* ---------- Plan (carte Leaflet) ---------- */
 const mapOverlay = document.getElementById('map-overlay');
 let leafletMap = null, mapMarkersLayer = null, mapInitialFitDone = false;
-let mapShowImages = true; // réglage « Images sur le plan »
 
 // Interpolation entre deux couleurs (façon carte de densité photo : peu d'événements → ambre, beaucoup → rouge)
 function lerpDensityColor(t){
@@ -4031,7 +4056,7 @@ function renderMapMarkers(){
     // Palier 3, vue rapprochée : la vraie photo si disponible (même cadrage que partout ailleurs), sinon une bulle pleine + libellé
     located.forEach(it=>{
       let marker;
-      if(it.img && mapShowImages){
+      if(it.img){
         const icon = L.divIcon({
           className: 'map-photo-marker',
           html: `<div class="map-photo-frame" style="border-color:${catOf(it.cat).color}"><img src="${escapeHtml(it.img)}" alt="" referrerpolicy="no-referrer" style="object-position:${escapeHtml(it.imgPosition||'center center')};"></div>`,
