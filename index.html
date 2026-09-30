@@ -664,6 +664,14 @@ body.dark-mode .lang-select{background-color:var(--paper-panel);}
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 .note-mention:hover{background:rgba(138,106,52,0.16);border-color:var(--brass);}
+.note-bible{
+  /* Au fil d'une phrase : pas de fond ni de marge intérieure, sinon la ponctuation qui suit
+     semble séparée du verset par une espace. La couleur, la graisse et l'icône suffisent. */
+  display:inline;color:var(--brass);text-decoration:none;font-weight:600;
+  border-radius:4px;padding:0 1px;white-space:nowrap;
+}
+.note-bible:hover{background:rgba(138,106,52,0.16);text-decoration:underline;}
+.note-bible .nb-icon{font-size:0.9em;opacity:0.8;margin-right:4px;}
 .note-mention .nm-icon{font-size:0.9em;opacity:0.8;flex:none;}
 .note-mention .nm-label{overflow:hidden;text-overflow:ellipsis;}
 .soon-badge{
@@ -954,7 +962,7 @@ body.dark-mode .lang-select{background-color:var(--paper-panel);}
         </button>
         <div class="accordion-body" id="note-body">
           <textarea id="f-note" placeholder="Note personnelle, réflexions, liens…"></textarea>
-          <div id="f-note-help" class="bible-help">Les adresses internet collées ici s'affichent sous forme de mention compacte.</div>
+          <div id="f-note-help" class="bible-help">Les adresses internet s'affichent sous forme de mention compacte, et les versets cités (ex : Gen 3:15) deviennent des liens vers JW Library.</div>
           <div id="f-note-preview" class="note-view"></div>
         </div>
       </div>
@@ -1183,7 +1191,7 @@ body.dark-mode .lang-select{background-color:var(--paper-panel);}
       <div class="settings-row" style="border-bottom:none;flex-direction:column;align-items:flex-start;">
         <div class="sr-label" id="mentions-row-label" style="margin-bottom:8px;">Mentions</div>
         <div class="settings-about">
-          <b>Bibline</b> — <span id="app-version-label">v0.9.1</span><br>
+          <b>Bibline</b> — <span id="app-version-label">v0.9.2</span><br>
           Application de gestion de connaissances historiques.<br>
           Vos données sont enregistrées automatiquement dans le stockage local de ce navigateur, sur cet appareil. Pour les retrouver sur un autre appareil, utilisez « Envoyer » puis « Recevoir » ci-dessus.
         </div>
@@ -1254,7 +1262,7 @@ body.dark-mode .lang-select{background-color:var(--paper-panel);}
 <script>
 (function(){
 
-const APP_VERSION = 'v0.9.1';
+const APP_VERSION = 'v0.9.2';
 
 const CATS = {
   politique:  {label:"Politique",  color:"#8A6A34"},
@@ -1337,13 +1345,13 @@ function noteToHtml(text){
     if(trail){ tail = trail[0]; raw = raw.slice(0, raw.length-tail.length); }
     if(!raw) continue;
     const href = raw.startsWith('www.') ? 'https://'+raw : raw;
-    out += escapeHtml(text.slice(last, m.index));
+    out += bibleTextToHtml(text.slice(last, m.index));
     out += `<a class="note-mention" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(href)}">`
         +  `<span class="nm-icon">🔗</span><span class="nm-label">${escapeHtml(mentionLabel(raw))}</span></a>`;
     out += escapeHtml(tail);
     last = m.index + m[0].length;
   }
-  out += escapeHtml(text.slice(last));
+  out += bibleTextToHtml(text.slice(last));
   return out;
 }
 function renderNote(container, text){
@@ -2480,7 +2488,7 @@ const STRINGS = {
     bibleErrChapter:(b,m)=>`${b} ne compte que ${m} chapitre${m>1?'s':''}`, bibleErrOrder:"versets dans le désordre",
     bibleErrFormat:"format non reconnu (ex : Gn 6:9-22)",
     timelineImgLabel:"Images sur la frise", timelineImgSub:"Affiche les vignettes des événements sur la frise (vue rapprochée, paysage)",
-    accNote:"Note", noteHelp:"Les adresses internet collées ici s'affichent sous forme de mention compacte.",
+    accNote:"Note", noteHelp:"Les adresses internet s'affichent sous forme de mention compacte, et les versets cités (ex : Gen 3:15) deviennent des liens vers JW Library.",
     notePlaceholder:"Note personnelle, réflexions, liens…",
     catManageBtn:"⚙ Gérer les catégories",
     familyTreeLabel:"Arbre généalogique", familyTreeSoon:"bientôt",
@@ -2531,7 +2539,7 @@ const STRINGS = {
     bibleErrChapter:(b,m)=>`${b} only has ${m} chapter${m>1?'s':''}`, bibleErrOrder:"verses out of order",
     bibleErrFormat:"unrecognised format (e.g. Gen 6:9-22)",
     timelineImgLabel:"Images on the timeline", timelineImgSub:"Show event thumbnails on the timeline (close-up view, landscape)",
-    accNote:"Note", noteHelp:"Web addresses pasted here appear as a compact mention.",
+    accNote:"Note", noteHelp:"Web addresses appear as a compact mention, and verses cited here (e.g. Gen 3:15) become JW Library links.",
     notePlaceholder:"Personal note, thoughts, links…",
     catManageBtn:"⚙ Manage categories",
     familyTreeLabel:"Family tree", familyTreeSoon:"soon",
@@ -2582,7 +2590,7 @@ const STRINGS = {
     bibleErrChapter:(b,m)=>`${b} solo tiene ${m} capítulo${m>1?'s':''}`, bibleErrOrder:"versículos desordenados",
     bibleErrFormat:"formato no reconocido (ej.: Gé 6:9-22)",
     timelineImgLabel:"Imágenes en la línea de tiempo", timelineImgSub:"Muestra las miniaturas de los eventos en la línea de tiempo (vista cercana, horizontal)",
-    accNote:"Nota", noteHelp:"Las direcciones de internet pegadas aquí aparecen como una mención compacta.",
+    accNote:"Nota", noteHelp:"Las direcciones de internet aparecen como una mención compacta, y los versículos citados (ej.: Gén 3:15) se convierten en enlaces a JW Library.",
     notePlaceholder:"Nota personal, reflexiones, enlaces…",
     catManageBtn:"⚙ Gestionar categorías",
     familyTreeLabel:"Árbol genealógico", familyTreeSoon:"pronto",
@@ -2633,7 +2641,7 @@ const STRINGS = {
     bibleErrChapter:(b,m)=>`${b} 只有 ${m} 章`, bibleErrOrder:"经节顺序有误",
     bibleErrFormat:"格式无法识别（例如：Gen 6:9-22）",
     timelineImgLabel:"时间轴上的图片", timelineImgSub:"在时间轴上显示事件缩略图（放大视图、横向）",
-    accNote:"笔记", noteHelp:"粘贴到这里的网址会显示为紧凑的提及卡片。",
+    accNote:"笔记", noteHelp:"粘贴到这里的网址会显示为紧凑的提及卡片，文中引用的经文（如 Gen 3:15）会变成 JW Library 链接。",
     notePlaceholder:"个人笔记、想法、链接…",
     catManageBtn:"⚙ 管理分类",
     familyTreeLabel:"家谱", familyTreeSoon:"即将推出",
@@ -3189,6 +3197,92 @@ function renderBibleRefs(container, text, showErrors){
   }).join('');
   container.style.display = '';
 }
+/* ---------- Versets cités au fil d'une note (v0.9.2) ----------
+   Dans le texte libre d'une note, « Gen 3:15 » devient un lien vers JW Library, comme dans le champ
+   « Références bibliques ». Le texte reste exactement tel qu'il a été saisi ; seule sa couleur change.
+   Deux garde-fous évitent de transformer une phrase ordinaire en lien :
+   — le chapitre ET le verset sont exigés (sauf pour les cinq livres à chapitre unique, ex. « Jude 3 »)
+   — quelques abréviations qui sont aussi des mots courants ne sont pas reconnues ici (« de », « est »,
+     « la », « le », « ne » en français) ; elles restent utilisables dans le champ « Références bibliques ». */
+const NOTE_BIBLE_SKIP = {
+  fr:['de','est','la','le','ne'],
+  en:['am','can','he','is'],
+  es:['de','la','mi'],
+  zh:[]
+};
+const NOTE_BIBLE_SKIP_ALWAYS = ['phil']; // « Phil. » désigne Philippiens ou Philémon selon la langue
+let NOTE_BIBLE_NAMES = null;
+function noteBibleNames(){
+  if(NOTE_BIBLE_NAMES) return NOTE_BIBLE_NAMES;
+  // Reconnaissance au nom exact (toutes langues confondues), sans devinette sur un début de mot :
+  // au fil d'un texte, « A 3:1 » ne doit pas devenir Amos.
+  NOTE_BIBLE_NAMES = new Map();
+  const claimed = new Map();
+  BIBLE_BOOKS.forEach((b,i)=>{
+    const id = i+1;
+    const add = (n)=>{
+      const c = bibleClean(n);
+      if(!c) return;
+      if(claimed.has(c) && claimed.get(c)!==id){ NOTE_BIBLE_NAMES.delete(c); return; } // nom revendiqué par deux livres
+      claimed.set(c, id);
+      NOTE_BIBLE_NAMES.set(c, id);
+    };
+    Object.values(b.n).forEach(arr=>arr.forEach(add));
+    (b.a||[]).forEach(add);
+  });
+  return NOTE_BIBLE_NAMES;
+}
+function noteBibleSkipped(cleanName){
+  if(NOTE_BIBLE_SKIP_ALWAYS.includes(cleanName)) return true;
+  return (NOTE_BIBLE_SKIP[currentLang] || []).includes(cleanName);
+}
+const NOTE_BIBLE_RE = /(^|[^\p{L}\p{N}])((?:[1-5]\s?\.?\s?)?\p{L}[\p{L}.\-]{0,16}(?:\s\p{L}[\p{L}.\-]{0,16}){0,2})\s?(\d{1,3}(?::\d{1,3}(?:\s?-\s?\d{1,3}(?::\d{1,3})?)?(?:\s?,\s?\d{1,3}(?:\s?-\s?\d{1,3})?)*)?)/gu;
+
+// Le nom du livre est cherché parmi les derniers mots précédant le numéro : « lire dans Gen 3:15 »
+// n'est pas le livre « lire dans Gen », mais bien « Gen ».
+function noteBibleMatch(bookRaw, numsRaw){
+  const words = [];
+  const wordRe = /\S+/g;
+  let w;
+  while((w = wordRe.exec(bookRaw))!==null) words.push({text:w[0], index:w.index});
+  const names = noteBibleNames();
+  for(let take=Math.min(3, words.length); take>=1; take--){
+    const slice = words.slice(words.length-take);
+    const cand = slice.map(p=>p.text).join(' ');
+    const c = bibleClean(cand);
+    if(!c || noteBibleSkipped(c)) continue;
+    const id = names.get(c);
+    if(!id) continue;
+    const ref = parseBibleRef(cand+' '+numsRaw);
+    if(!ref || ref.error) continue;
+    if(ref.chapterOnly && !BIBLE_SINGLE_CHAPTER.includes(id)) continue; // « Actes 5 » reste une phrase
+    return {ref, startInBook: slice[0].index};
+  }
+  return null;
+}
+
+function bibleTextToHtml(text){
+  if(!text) return '';
+  let out='', last=0, m;
+  const re = new RegExp(NOTE_BIBLE_RE.source, 'gu');
+  const targetAttr = bibleTarget==='web' ? ' target="_blank" rel="noopener"' : '';
+  while((m = re.exec(text))!==null){
+    const found = noteBibleMatch(m[2], m[3]);
+    if(!found) continue;
+    const parts = bibleRefParts(found.ref);
+    const start = m.index + m[1].length + found.startInBook;
+    const end = m.index + m[0].length;
+    out += escapeHtml(text.slice(last, start));
+    const shown = text.slice(start, end);
+    const title = parts.map(p=>p.text).join(', ');
+    out += `<a class="note-bible" href="${escapeHtml(bibleUrl(parts[0].param))}"${targetAttr} title="${escapeHtml(title)}">`
+        +  `<span class="nb-icon">📖</span>${escapeHtml(shown)}</a>`;
+    last = end;
+  }
+  out += escapeHtml(text.slice(last));
+  return out;
+}
+
 // Texte des références (noms normalisés) utilisé pour la recherche
 function bibleRefsSearchText(it){
   if(!it.bibleRefs) return '';
