@@ -10,14 +10,14 @@
 </p>
 
 <p align="center">
-  <a href="https://mathieu-p12.github.io/Timeline/"><img alt="Démo en ligne" src="https://img.shields.io/badge/d%C3%A9mo-en%20ligne-8A6A34?style=flat-square"></a>
+  <a href="https://mathieu-p12.github.io/Bibline/"><img alt="Démo en ligne" src="https://img.shields.io/badge/d%C3%A9mo-en%20ligne-8A6A34?style=flat-square"></a>
   <img alt="Version" src="https://img.shields.io/badge/version-0.9.1-B08D4C?style=flat-square">
   <img alt="PWA" src="https://img.shields.io/badge/PWA-hors%20ligne-3F7A72?style=flat-square">
   <img alt="Langues" src="https://img.shields.io/badge/langues-FR%20%C2%B7%20EN%20%C2%B7%20ES%20%C2%B7%20ZH-48607E?style=flat-square">
 </p>
 
 <p align="center">
-  <a href="https://mathieu-p12.github.io/Timeline/"><b>▶ Ouvrir Bibline</b></a>
+  <a href="https://mathieu-p12.github.io/Bibline/"><b>▶ Ouvrir Bibline</b></a>
 </p>
 
 <p align="center">
@@ -107,7 +107,7 @@ L'idée de départ est simple : on navigue sur une carte en zoomant et en glissa
 
 Aucune installation technique : Bibline s'ouvre dans un navigateur.
 
-1. Ouvrez **[mathieu-p12.github.io/Timeline](https://mathieu-p12.github.io/Timeline/)**
+1. Ouvrez **[mathieu-p12.github.io/Bibline](https://mathieu-p12.github.io/Bibline/)**
 2. Pour l'installer comme une application :
    - **Chrome / Edge (ordinateur)** : icône d'installation dans la barre d'adresse
    - **Android** : menu ⋮ → *Ajouter à l'écran d'accueil*
