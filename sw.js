@@ -1,15 +1,22 @@
 /*
-  Service Worker — Frise Chronologique
+  Service Worker — Bibline
   Rôle : permettre l'installation de l'app (PWA) et un fonctionnement hors-ligne
   raisonnable pour la coquille de l'application (HTML/CSS/JS/icônes).
   Les tuiles de carte (OpenStreetMap / Esri) ne sont volontairement PAS mises
   en cache : elles nécessitent une connexion et sont trop nombreuses/lourdes.
 */
 
-const CACHE_VERSION = 'bibline-v0.9.2';
+/* Changer ce numéro à chaque mise en ligne : l'ancien cache est alors effacé et tous les fichiers
+   ci-dessous sont retéléchargés ensemble. C'est ce qui garantit que index.html, styles.css et app.js
+   restent d'une même version — avec plusieurs fichiers, c'est le point à ne pas oublier. */
+const CACHE_VERSION = 'bibline-v0.9.3';
 const APP_SHELL = [
   './',
   './index.html',
+  './styles.css',
+  './app.js',
+  './bible-books.js',
+  './data.json',
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
@@ -24,12 +31,15 @@ const MAP_TILE_HOSTS = [
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_VERSION).then((cache) => {
-      // addAll échouerait entièrement si une seule ressource externe est bloquée ;
-      // on ajoute donc la coquille locale de façon groupée, puis les ressources
-      // externes (police, Leaflet, Dexie) une par une, en tolérant les échecs.
-      return cache.addAll(APP_SHELL).catch(() => {});
-    }).then(() => self.skipWaiting())
+    caches.open(CACHE_VERSION).then((cache) =>
+      // Fichier par fichier : si l'un d'eux manquait (oubli lors de la mise en ligne), un addAll
+      // groupé abandonnerait tout le cache d'un bloc et le mode hors-ligne cesserait de fonctionner
+      // sans prévenir. Ici, les autres fichiers sont tout de même mis en cache, et la console
+      // nomme celui qui manque.
+      Promise.all(APP_SHELL.map((url) =>
+        cache.add(url).catch((err) => console.warn('Bibline : ressource absente du cache —', url, err))
+      ))
+    ).then(() => self.skipWaiting())
   );
 });
 

@@ -1,0 +1,656 @@
+{
+  "app": "frise-chronologique",
+  "version": 2,
+  "_lisezmoi": "Contenu livré avec Bibline : il n'est installé que lors du tout premier lancement sur un appareil, lorsque la base locale est encore vide. Ensuite, c'est la base locale de l'appareil qui fait foi : modifier ce fichier ne touche jamais aux événements déjà saisis. Le format est celui des exports (bouton « Envoyer » dans les paramètres), donc ce fichier peut être régénéré depuis l'application.",
+  "categories": {},
+  "events": [
+    {
+      "y": -4026,
+      "approx": true,
+      "t": "Création d'Adam",
+      "cat": "religion",
+      "d": "Selon la chronologie biblique traditionnelle, création du premier homme.",
+      "img": "https://cms-imgp.jw-cdn.org/img/p/402015921/univ/art/402015921_univ_lsr_lg.jpg",
+      "imgPosition": "bottom center"
+    },
+    {
+      "y": -2370,
+      "approx": true,
+      "t": "Déluge mondial (Noé)",
+      "cat": "religion",
+      "d": "Récit biblique du déluge universel et du sauvetage de Noé, sa famille et les animaux dans l'arche.",
+      "link": "https://wol.jw.org/fr/wol/mp/r30/lp-f/ll/2011/59"
+    },
+    {
+      "y": -1943,
+      "approx": true,
+      "t": "Appel d'Abraham",
+      "cat": "religion",
+      "d": "Abraham quitte Ur de Chaldée pour se rendre dans le pays de Canaan, selon le récit biblique.",
+      "locationName": "Ur, Mésopotamie",
+      "lat": 30.9636,
+      "lng": 46.1027,
+      "img": "https://cms-imgp.jw-cdn.org/img/p/1102013273/univ/art/1102013273_univ_cnt_3_xl.jpg",
+      "imgPosition": "top center"
+    },
+    {
+      "y": -1513,
+      "approx": true,
+      "t": "Exode d'Égypte",
+      "cat": "religion",
+      "d": "Sortie du peuple d'Israël hors d'Égypte sous la conduite de Moïse, selon le récit biblique.",
+      "locationName": "Égypte",
+      "link": "https://wol.jw.org/fr/wol/mp/r30/lp-f/lfb/2017/216"
+    },
+    {
+      "y": -607,
+      "t": "Destruction de Jérusalem par Babylone",
+      "cat": "religion",
+      "d": "Prise de Jérusalem et destruction du Temple de Salomon par Nabuchodonosor II, début de l'exil babylonien.",
+      "locationName": "Jérusalem",
+      "lat": 31.7683,
+      "lng": 35.2137,
+      "img": "https://cms-imgp.jw-cdn.org/img/p/1102016068/univ/art/1102016068_univ_lsr_lg.jpg",
+      "imgPosition": "center center"
+    },
+    {
+      "y": -3,
+      "t": "L'ange Gabriel annonce à Zacharie la naissance de Jean",
+      "cat": "religion",
+      "d": "L'ange Gabriel prédit à Zacharie la naissance de Jean le Baptiseur."
+    },
+    {
+      "y": -2,
+      "approx": true,
+      "t": "Gabriel annonce à Marie la naissance de Jésus",
+      "cat": "religion",
+      "d": "L'ange Gabriel annonce à Marie qu'elle mettra au monde le Fils de Dieu, selon le récit biblique.",
+      "img": "https://cms-imgp.jw-cdn.org/img/p/1102013263/univ/art/1102013263_univ_cnt_2_xl.jpg",
+      "imgPosition": "center center"
+    },
+    {
+      "y": -1.2521,
+      "month": 10,
+      "day": 1,
+      "approx": true,
+      "t": "Naissance de Jésus",
+      "cat": "religion",
+      "d": "Naissance de Jésus de Nazareth à Bethléem, selon le récit biblique.",
+      "locationName": "Bethléem",
+      "lat": 31.7054,
+      "lng": 35.2024,
+      "img": "https://cms-imgp.jw-cdn.org/img/p/1102014608/univ/art/1102014608_univ_cnt_2_xl.jpg",
+      "imgPosition": "center center"
+    },
+    {
+      "y": 12.2486,
+      "month": 4,
+      "approx": true,
+      "t": "Jésus enseigne au Temple de Jérusalem",
+      "cat": "religion",
+      "d": "À l'occasion de la Pâque, le jeune Jésus interroge et enseigne les docteurs de la Loi au Temple.",
+      "locationName": "Jérusalem",
+      "lat": 31.7683,
+      "lng": 35.2137,
+      "img": "https://cms-imgp.jw-cdn.org/img/p/1102016082/univ/art/1102016082_univ_lsr_md.jpg",
+      "imgPosition": "center center"
+    },
+    {
+      "y": 29.2466,
+      "month": 4,
+      "approx": true,
+      "t": "Jean le Baptiseur commence son ministère",
+      "cat": "religion",
+      "d": "Jean commence à prêcher et à baptiser dans le désert de Judée, au printemps de l'an 29.",
+      "img": "https://cms-imgp.jw-cdn.org/img/p/1102016083/univ/art/1102016083_univ_lsr_lg.jpg",
+      "imgPosition": "center center"
+    },
+    {
+      "y": 29.7479,
+      "month": 10,
+      "approx": true,
+      "t": "Baptême de Jésus",
+      "cat": "religion",
+      "d": "Onction par l'esprit saint et début de son ministère.",
+      "img": "https://cms-imgp.jw-cdn.org/img/p/1102014615/univ/art/1102014615_univ_cnt_2_xl.jpg",
+      "imgPosition": "center center"
+    },
+    {
+      "y": 29.76,
+      "month": 10,
+      "approx": true,
+      "t": "Tentation de Jésus dans le désert",
+      "cat": "religion",
+      "d": "Après son baptême, Jésus jeûne quarante jours dans le désert où il est mis à l'épreuve, selon le récit biblique.",
+      "img": "https://cms-imgp.jw-cdn.org/img/p/rrv/univ/art/rrv_univ_wsr_001_lg.jpg",
+      "imgPosition": "center center"
+    },
+    {
+      "y": 29.77,
+      "month": 10,
+      "approx": true,
+      "t": "Les premiers disciples suivent Jésus",
+      "cat": "religion",
+      "d": "Quelques jours après les tentations, les premiers disciples se joignent à Jésus.",
+      "img": "https://cms-imgp.jw-cdn.org/img/p/1102003033/univ/art/1102003033_univ_cnt_2_xl.jpg",
+      "imgPosition": "center center"
+    },
+    {
+      "y": 29.8329,
+      "month": 11,
+      "approx": true,
+      "t": "L'eau changée en vin",
+      "cat": "religion",
+      "d": "Premier miracle rapporté de Jésus, lors d'un mariage à Cana, en Galilée.",
+      "locationName": "Cana",
+      "link": "https://wol.jw.org/fr/wol/mp/r30/lp-f/w23/2023/236"
+    },
+    {
+      "y": 33,
+      "t": "Mort et résurrection de Jésus",
+      "cat": "religion",
+      "d": "Exécution de Jésus à Jérusalem lors de la Pâque, suivie selon le récit biblique de sa résurrection.",
+      "locationName": "Jérusalem",
+      "lat": 31.7683,
+      "lng": 35.2137,
+      "img": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRQiHk9D0jFz9zyj61mtrcPruiPA4DuC6oPrqKw9vsU3FUkxmfsQhed-eV4&s=10",
+      "imgPosition": "center center"
+    },
+    {
+      "y": 70,
+      "t": "Destruction de Jérusalem par les Romains",
+      "cat": "religion",
+      "d": "Prise de Jérusalem et destruction du second Temple par les légions romaines de Titus, mettant fin à la révolte juive.",
+      "locationName": "Jérusalem",
+      "lat": 31.7683,
+      "lng": 35.2137,
+      "img": "https://cms-imgp.jw-cdn.org/img/p/1200003646/univ/art/1200003646_univ_cnt_3_md.jpg",
+      "imgPosition": "center center"
+    },
+    {
+      "y": -4500,
+      "approx": true,
+      "t": "Premiers villages agricoles",
+      "cat": "decouverte",
+      "d": "Sédentarisation progressive des communautés humaines autour de l'agriculture et de l'élevage.",
+      "locationName": "Anatolie (actuelle Turquie)",
+      "lat": 37.6666,
+      "lng": 32.8285
+    },
+    {
+      "y": -3500,
+      "approx": true,
+      "t": "Invention de la roue",
+      "cat": "decouverte",
+      "d": "Apparition des premières roues utilisées pour la poterie puis le transport."
+    },
+    {
+      "y": -3200,
+      "approx": true,
+      "t": "Écriture cunéiforme",
+      "cat": "culture",
+      "d": "Apparition en Mésopotamie d'un des tout premiers systèmes d'écriture connus.",
+      "locationName": "Uruk, Mésopotamie",
+      "lat": 31.3225,
+      "lng": 45.6373
+    },
+    {
+      "y": -3100,
+      "approx": true,
+      "t": "Unification de l'Égypte",
+      "cat": "politique",
+      "d": "Réunification légendaire de la Haute et de la Basse-Égypte sous un même pouvoir.",
+      "locationName": "Memphis, Égypte",
+      "lat": 29.8442,
+      "lng": 31.2529
+    },
+    {
+      "y": -3000,
+      "approx": true,
+      "t": "Édification de Stonehenge",
+      "cat": "culture",
+      "d": "Début de la construction du site mégalithique en plusieurs phases successives.",
+      "locationName": "Stonehenge, Angleterre",
+      "lat": 51.1789,
+      "lng": -1.8262,
+      "img": "https://upload.wikimedia.org/wikipedia/commons/a/a2/Stonehenge2007_07_30.jpg"
+    },
+    {
+      "y": -2560,
+      "approx": true,
+      "t": "Grande Pyramide de Gizeh",
+      "cat": "culture",
+      "d": "Achèvement présumé de la pyramide de Khéops, plus grand monument funéraire égyptien.",
+      "locationName": "Gizeh, Égypte",
+      "lat": 29.9792,
+      "lng": 31.1342,
+      "img": "https://upload.wikimedia.org/wikipedia/commons/e/e3/Kheops-Pyramid.jpg"
+    },
+    {
+      "y": -1754,
+      "t": "Code d'Hammurabi",
+      "cat": "politique",
+      "d": "Un des premiers grands codes de lois écrits, gravé sur une stèle babylonienne.",
+      "locationName": "Babylone, Mésopotamie",
+      "lat": 32.5355,
+      "lng": 44.4275
+    },
+    {
+      "y": -1200,
+      "approx": true,
+      "t": "Guerre de Troie (tradition)",
+      "cat": "guerre",
+      "d": "Conflit légendaire relaté plus tard par les épopées homériques."
+    },
+    {
+      "y": -776,
+      "t": "Premiers Jeux Olympiques",
+      "cat": "culture",
+      "d": "Compétitions sportives organisées à Olympie en l'honneur de Zeus.",
+      "locationName": "Olympie, Grèce",
+      "lat": 37.6383,
+      "lng": 21.63
+    },
+    {
+      "y": -753,
+      "t": "Fondation de Rome",
+      "cat": "politique",
+      "d": "Date traditionnelle de la fondation de la ville de Rome.",
+      "locationName": "Rome, Italie",
+      "lat": 41.9028,
+      "lng": 12.4964,
+      "img": "https://upload.wikimedia.org/wikipedia/commons/9/98/She-wolf_suckling_Romulus_and_Remus.jpg"
+    },
+    {
+      "y": -563,
+      "approx": true,
+      "t": "Naissance du Bouddha",
+      "cat": "religion",
+      "d": "Naissance de Siddhartha Gautama, fondateur du bouddhisme."
+    },
+    {
+      "y": -509,
+      "t": "République romaine",
+      "cat": "politique",
+      "d": "Fin de la royauté romaine et instauration d'un régime républicain."
+    },
+    {
+      "y": -490,
+      "t": "Bataille de Marathon",
+      "cat": "guerre",
+      "d": "Victoire athénienne décisive contre l'Empire perse.",
+      "locationName": "Marathon, Grèce",
+      "lat": 38.15,
+      "lng": 23.9667
+    },
+    {
+      "y": -447,
+      "t": "Construction du Parthénon",
+      "cat": "culture",
+      "d": "Début des travaux du temple dédié à Athéna sur l'Acropole.",
+      "locationName": "Athènes, Grèce",
+      "lat": 37.9715,
+      "lng": 23.7257,
+      "img": "https://upload.wikimedia.org/wikipedia/commons/c/c9/The_Parthenon_in_Athens.jpg"
+    },
+    {
+      "y": -336,
+      "t": "Alexandre le Grand, roi de Macédoine",
+      "cat": "personnage",
+      "d": "Début du règne qui mènera à la constitution d'un empire s'étendant jusqu'en Inde."
+    },
+    {
+      "y": -221,
+      "t": "Unification de la Chine",
+      "cat": "politique",
+      "d": "Qin Shi Huang devient le premier empereur d'une Chine unifiée.",
+      "locationName": "Xi'an, Chine",
+      "lat": 34.3416,
+      "lng": 108.9398
+    },
+    {
+      "y": -44,
+      "t": "Assassinat de Jules César",
+      "cat": "personnage",
+      "d": "César est assassiné au Sénat romain, précipitant la fin de la République.",
+      "locationName": "Rome, Italie",
+      "lat": 41.9028,
+      "lng": 12.4964,
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Vincenzo_Camuccini_-_La_morte_di_Cesare.jpg/1920px-Vincenzo_Camuccini_-_La_morte_di_Cesare.jpg",
+      "imgPosition": "center center"
+    },
+    {
+      "y": -27,
+      "t": "Début de l'Empire romain",
+      "cat": "politique",
+      "d": "Octave devient Auguste, premier empereur romain."
+    },
+    {
+      "y": 79,
+      "t": "Éruption du Vésuve",
+      "cat": "decouverte",
+      "d": "Destruction de Pompéi et Herculanum, ensevelies sous les cendres.",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/5/5e/LeChevalierVolaire-MontVesuve.jpg",
+      "imgPosition": "center center"
+    },
+    {
+      "y": 313,
+      "t": "Édit de Milan",
+      "cat": "religion",
+      "d": "L'empereur Constantin accorde la tolérance au christianisme dans l'Empire."
+    },
+    {
+      "y": 476,
+      "t": "Chute de l'Empire romain d'Occident",
+      "cat": "politique",
+      "d": "Déposition du dernier empereur romain d'Occident, Romulus Augustule.",
+      "locationName": "Ravenne, Italie",
+      "lat": 44.4184,
+      "lng": 12.2035
+    },
+    {
+      "y": 610,
+      "approx": true,
+      "t": "Premières révélations à Mahomet",
+      "cat": "religion",
+      "d": "Début, selon la tradition musulmane, de la révélation du Coran."
+    },
+    {
+      "y": 800,
+      "t": "Charlemagne couronné empereur",
+      "cat": "politique",
+      "d": "Couronnement à Rome par le pape Léon III, fondation du Saint-Empire.",
+      "locationName": "Rome, Italie",
+      "lat": 41.9028,
+      "lng": 12.4964
+    },
+    {
+      "y": 1066,
+      "t": "Bataille de Hastings",
+      "cat": "guerre",
+      "d": "Guillaume le Conquérant remporte la couronne d'Angleterre.",
+      "locationName": "Hastings, Angleterre",
+      "lat": 50.8543,
+      "lng": 0.5741
+    },
+    {
+      "y": 1088,
+      "t": "Fondation de l'université de Bologne",
+      "cat": "culture",
+      "d": "Considérée comme la plus ancienne université du monde occidental."
+    },
+    {
+      "y": 1215,
+      "t": "Magna Carta",
+      "cat": "politique",
+      "d": "Charte limitant le pouvoir royal anglais, socle du constitutionnalisme.",
+      "locationName": "Runnymede, Angleterre",
+      "lat": 51.4477,
+      "lng": -0.5615,
+      "img": "https://upload.wikimedia.org/wikipedia/commons/9/9c/Magna_Carta_%28British_Library_Cotton_MS_Augustus_II.106%29.jpg"
+    },
+    {
+      "y": 1265,
+      "approx": true,
+      "t": "Naissance de Dante",
+      "cat": "personnage",
+      "d": "Auteur de la Divine Comédie, figure majeure de la littérature italienne."
+    },
+    {
+      "y": 1347,
+      "t": "Peste noire en Europe",
+      "cat": "guerre",
+      "d": "Épidémie dévastatrice ayant emporté près d'un tiers de la population européenne."
+    },
+    {
+      "y": 1440,
+      "approx": true,
+      "t": "Invention de l'imprimerie",
+      "cat": "decouverte",
+      "d": "Gutenberg met au point l'imprimerie à caractères mobiles."
+    },
+    {
+      "y": 1453,
+      "t": "Chute de Constantinople",
+      "cat": "guerre",
+      "d": "Prise de la capitale byzantine par les Ottomans, fin de l'Empire romain d'Orient.",
+      "locationName": "Constantinople (Istanbul)",
+      "lat": 41.0082,
+      "lng": 28.9784
+    },
+    {
+      "y": 1492,
+      "t": "Arrivée de Christophe Colomb en Amérique",
+      "cat": "decouverte",
+      "d": "Premier voyage transatlantique ouvrant l'ère des grandes explorations.",
+      "locationName": "San Salvador, Bahamas",
+      "lat": 24.02,
+      "lng": -74.5,
+      "img": "https://upload.wikimedia.org/wikipedia/commons/f/f3/Landing_of_Columbus_%282%29.jpg"
+    },
+    {
+      "y": 1503,
+      "approx": true,
+      "t": "La Joconde",
+      "cat": "culture",
+      "d": "Léonard de Vinci commence son portrait le plus célèbre."
+    },
+    {
+      "y": 1517,
+      "t": "Thèses de Luther",
+      "cat": "religion",
+      "d": "Début de la Réforme protestante en Europe."
+    },
+    {
+      "y": 1610,
+      "t": "Galilée observe les lunes de Jupiter",
+      "cat": "science",
+      "d": "Découvertes majeures grâce à la lunette astronomique perfectionnée."
+    },
+    {
+      "y": 1687,
+      "t": "Principia Mathematica",
+      "cat": "science",
+      "d": "Isaac Newton publie ses lois du mouvement et de la gravitation."
+    },
+    {
+      "y": 1776,
+      "t": "Déclaration d'indépendance des États-Unis",
+      "cat": "politique",
+      "d": "Les treize colonies américaines proclament leur indépendance."
+    },
+    {
+      "y": 1789.53,
+      "month": 7,
+      "day": 14,
+      "t": "Prise de la Bastille",
+      "cat": "politique",
+      "d": "Point de départ symbolique de la Révolution française.",
+      "locationName": "Paris, France",
+      "lat": 48.8531,
+      "lng": 2.3691,
+      "img": "https://upload.wikimedia.org/wikipedia/commons/5/5c/Prise_de_la_Bastille.jpg"
+    },
+    {
+      "y": 1804,
+      "t": "Napoléon, empereur des Français",
+      "cat": "politique",
+      "d": "Sacre de Napoléon Bonaparte à Notre-Dame de Paris.",
+      "locationName": "Paris, France",
+      "lat": 48.853,
+      "lng": 2.3499
+    },
+    {
+      "y": 1848,
+      "t": "Abolition de l'esclavage en France",
+      "cat": "politique",
+      "d": "Décret d'abolition définitive dans les colonies françaises."
+    },
+    {
+      "y": 1859,
+      "t": "Origine des espèces",
+      "cat": "science",
+      "d": "Charles Darwin publie sa théorie de l'évolution par sélection naturelle."
+    },
+    {
+      "y": 1879,
+      "t": "Ampoule électrique à incandescence",
+      "cat": "decouverte",
+      "d": "Thomas Edison met au point une ampoule durable et commercialisable."
+    },
+    {
+      "y": 1905,
+      "t": "Théorie de la relativité restreinte",
+      "cat": "science",
+      "d": "Albert Einstein publie ses travaux bouleversant la physique moderne."
+    },
+    {
+      "y": 1944.43,
+      "month": 6,
+      "day": 6,
+      "t": "Débarquement de Normandie",
+      "cat": "guerre",
+      "d": "Débarquement allié sur les plages normandes, tournant de la Seconde Guerre mondiale.",
+      "locationName": "Normandie, France",
+      "lat": 49.3433,
+      "lng": -0.6,
+      "img": "https://upload.wikimedia.org/wikipedia/commons/9/9a/Into_the_Jaws_of_Death_23-0455M_edit.jpg"
+    },
+    {
+      "y": 1945,
+      "t": "Fondation de l'ONU",
+      "cat": "politique",
+      "d": "Création de l'Organisation des Nations unies au sortir de la guerre."
+    },
+    {
+      "y": 1953,
+      "t": "Structure de l'ADN",
+      "cat": "science",
+      "d": "Watson et Crick décrivent la structure en double hélice de l'ADN."
+    },
+    {
+      "y": 1969.55,
+      "month": 7,
+      "day": 20,
+      "t": "Premier pas sur la Lune",
+      "cat": "decouverte",
+      "d": "Neil Armstrong devient le premier homme à marcher sur la Lune.",
+      "locationName": "Houston, États-Unis (contrôle de mission)",
+      "lat": 29.5586,
+      "lng": -95.093,
+      "img": "https://upload.wikimedia.org/wikipedia/commons/9/98/Aldrin_Apollo_11_original.jpg"
+    },
+    {
+      "y": 1989,
+      "t": "Chute du mur de Berlin",
+      "cat": "politique",
+      "d": "Symbole de la fin de la Guerre froide et de la division de l'Europe.",
+      "locationName": "Berlin, Allemagne",
+      "lat": 52.5163,
+      "lng": 13.3777
+    },
+    {
+      "y": 1991,
+      "approx": true,
+      "t": "Le World Wide Web devient public",
+      "cat": "decouverte",
+      "d": "Tim Berners-Lee ouvre son projet de toile mondiale au grand public."
+    },
+    {
+      "y": 2001.69,
+      "month": 9,
+      "day": 11,
+      "t": "Attentats du 11 septembre",
+      "cat": "guerre",
+      "d": "Attaques terroristes visant New York et Washington.",
+      "locationName": "New York, États-Unis",
+      "lat": 40.7115,
+      "lng": -74.0134
+    },
+    {
+      "y": 2007.49,
+      "month": 6,
+      "day": 29,
+      "t": "Sortie du premier iPhone",
+      "cat": "decouverte",
+      "d": "Lancement d'un smartphone qui redéfinit les usages numériques."
+    },
+    {
+      "y": 2015,
+      "t": "Accord de Paris sur le climat",
+      "cat": "politique",
+      "d": "Adoption d'un accord international sur la réduction des émissions."
+    },
+    {
+      "y": 2020,
+      "t": "Pandémie de COVID-19",
+      "cat": "guerre",
+      "d": "Crise sanitaire mondiale bouleversant sociétés et économies."
+    }
+  ],
+  "periods": [
+    {
+      "start": -27,
+      "end": 476,
+      "t": "Empire romain",
+      "cat": "politique",
+      "d": "Régime politique romain succédant à la République, s'étendant sur tout le bassin méditerranéen."
+    },
+    {
+      "start": 1096,
+      "end": 1291,
+      "t": "Les Croisades",
+      "cat": "guerre",
+      "d": "Série d'expéditions militaires chrétiennes en direction du Proche-Orient."
+    },
+    {
+      "start": 1337,
+      "end": 1453,
+      "t": "Guerre de Cent Ans",
+      "cat": "guerre",
+      "d": "Conflit prolongé, entrecoupé de trêves, entre les royaumes de France et d'Angleterre."
+    },
+    {
+      "start": 1368,
+      "end": 1644,
+      "t": "Dynastie Ming",
+      "cat": "culture",
+      "d": "Période impériale chinoise marquée par un fort essor culturel, artistique et commercial."
+    },
+    {
+      "start": 1643,
+      "end": 1715,
+      "t": "Règne de Louis XIV",
+      "cat": "politique",
+      "d": "Le « Roi-Soleil » incarne l'apogée de la monarchie absolue française."
+    },
+    {
+      "start": 1861,
+      "end": 1865,
+      "t": "Guerre de Sécession",
+      "cat": "guerre",
+      "d": "Conflit opposant l'Union aux États confédérés, notamment autour de l'esclavage."
+    },
+    {
+      "start": 1914,
+      "end": 1918,
+      "t": "Première Guerre mondiale",
+      "cat": "guerre",
+      "d": "Conflit mondial déclenché après l'assassinat de François-Ferdinand."
+    },
+    {
+      "start": 1939,
+      "end": 1945,
+      "t": "Seconde Guerre mondiale",
+      "cat": "guerre",
+      "d": "Conflit mondial déclenché par l'invasion de la Pologne."
+    },
+    {
+      "start": 1947,
+      "end": 1991,
+      "t": "Guerre froide",
+      "cat": "politique",
+      "d": "Période de tensions géopolitiques entre les blocs américain et soviétique."
+    }
+  ]
+}
