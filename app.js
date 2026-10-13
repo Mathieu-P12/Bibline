@@ -1,6 +1,6 @@
 (function(){
 
-const APP_VERSION = 'v0.9.4';
+const APP_VERSION = 'v0.9.5';
 
 const CATS = {
   politique:  {label:"Politique",  color:"#8A6A34"},
@@ -72,6 +72,81 @@ function mentionLabel(url){
     return url.replace(/^https?:\/\//,'').slice(0,40);
   }
 }
+
+/* ---------- Renvois d'un événement à l'autre (v0.9.5) ----------
+   Le bouton « copier le lien » d'une fiche produit une adresse du type
+   .../Bibline/#e=<identifiant>&t=<titre>. Collée dans une description ou une note, elle s'affiche
+   comme un simple #Titre cliquable ; collée dans une autre application, elle ouvre Bibline sur
+   l'événement. Le titre est transporté en plus de l'identifiant car celui-ci est propre à chaque
+   appareil : un élément reçu par « Recevoir » y porte un autre identifiant. Si l'identifiant ne
+   correspond à rien ici, le titre prend le relais.
+   Taper directement #Titre fonctionne aussi : le plus long titre existant qui suit le dièse est
+   reconnu, ce qui permet les noms à espaces. Sans correspondance, le texte reste du texte. */
+function eventLink(it){
+  return location.origin + location.pathname
+    + '#e=' + encodeURIComponent(it.id) + '&t=' + encodeURIComponent(it.t);
+}
+function parseEventHash(hash){
+  const h = String(hash||'').replace(/^#/,'');
+  if(!/^e=/.test(h)) return null;
+  const p = new URLSearchParams(h);
+  return {id:p.get('e'), t:p.get('t')};
+}
+function findEventByRef(ref){
+  if(!ref) return null;
+  let it = ref.id ? ALL_ITEMS.find(x=>x.id===ref.id) : null;
+  if(!it && ref.t){
+    const n = normalize(ref.t);
+    it = ALL_ITEMS.find(x=>normalize(x.t)===n);
+  }
+  return it || null;
+}
+// Titres classés du plus long au plus court : « Noé et le déluge » l'emporte ainsi sur « Noé »
+let TITLE_INDEX = null;
+function titleIndex(){
+  if(!TITLE_INDEX){
+    TITLE_INDEX = ALL_ITEMS.filter(it=>it.t && it.t.trim())
+      .map(it=>({it, len:it.t.length, norm:normalize(it.t)}))
+      .sort((a,b)=>b.len-a.len);
+  }
+  return TITLE_INDEX;
+}
+function invalidateTitleIndex(){ TITLE_INDEX = null; }
+// Cherche, à cette position du texte, le titre d'événement le plus long qui corresponde
+function matchEventTitleAt(text, pos){
+  const rest = text.slice(pos, pos+120);
+  const restNorm = normalize(rest);
+  for(const entry of titleIndex()){
+    if(entry.len > rest.length) continue;
+    if(restNorm.startsWith(entry.norm) && normalize(rest.slice(0, entry.len))===entry.norm){
+      return {item:entry.it, length:entry.len};
+    }
+  }
+  return null;
+}
+function eventTagHtml(item, shownTitle){
+  return `<a class="note-event" href="${escapeHtml(eventLink(item))}" data-event-id="${escapeHtml(item.id)}"`
+       + ` title="${escapeHtml(T().goToEventTitle(item.t))}"><span class="ne-icon">#</span>${escapeHtml(shownTitle)}</a>`;
+}
+// Texte courant : les #Titre deviennent des renvois, le reste part vers la détection des versets
+function eventTagsToHtml(text){
+  if(!text) return '';
+  let out='', last=0;
+  for(let i=0;i<text.length;i++){
+    if(text[i] !== '#') continue;
+    // Un dièse collé à un mot (couleur #8A6A34, mot-dièse) n'ouvre pas un renvoi
+    if(i>0 && /[\p{L}\p{N}]/u.test(text[i-1])) continue;
+    const found = matchEventTitleAt(text, i+1);
+    if(!found) continue;
+    out += bibleTextToHtml(text.slice(last, i));
+    out += eventTagHtml(found.item, text.substr(i+1, found.length));
+    last = i + 1 + found.length;
+    i = last - 1;
+  }
+  out += bibleTextToHtml(text.slice(last));
+  return out;
+}
+
 function noteToHtml(text){
   if(!text) return '';
   let out='', last=0, m;
@@ -83,19 +158,57 @@ function noteToHtml(text){
     if(trail){ tail = trail[0]; raw = raw.slice(0, raw.length-tail.length); }
     if(!raw) continue;
     const href = raw.startsWith('www.') ? 'https://'+raw : raw;
-    out += bibleTextToHtml(text.slice(last, m.index));
-    out += `<a class="note-mention" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(href)}">`
-        +  `<span class="nm-icon">🔗</span><span class="nm-label">${escapeHtml(mentionLabel(raw))}</span></a>`;
+    out += eventTagsToHtml(text.slice(last, m.index));
+    let ref = null;
+    try{ ref = parseEventHash(new URL(href).hash); }catch(err){ ref = null; }
+    const linked = ref ? findEventByRef(ref) : null;
+    if(ref && linked){
+      // Lien Bibline collé : il s'affiche comme le renvoi qu'il est, pas comme une adresse
+      out += eventTagHtml(linked, linked.t);
+    } else if(ref){
+      out += escapeHtml('#' + (ref.t || '?')); // événement absent de cet appareil : texte simple
+    } else {
+      out += `<a class="note-mention" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(href)}">`
+          +  `<span class="nm-icon">🔗</span><span class="nm-label">${escapeHtml(mentionLabel(raw))}</span></a>`;
+    }
     out += escapeHtml(tail);
     last = m.index + m[0].length;
   }
-  out += bibleTextToHtml(text.slice(last));
+  out += eventTagsToHtml(text.slice(last));
   return out;
 }
 function renderNote(container, text){
   const html = noteToHtml((text||'').trim());
   container.innerHTML = html;
   container.classList.toggle('has-data', !!html);
+}
+
+/* Message fugitif en bas de l'écran (lien copié, événement introuvable…) */
+let toastTimer = null;
+function showToast(msg){
+  const el = document.getElementById('toast');
+  if(!el) return;
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> el.classList.remove('show'), 2600);
+}
+// Le presse-papiers moderne exige une page servie en HTTPS : repli sur l'ancienne méthode sinon
+async function copyText(text){
+  try{
+    if(navigator.clipboard && window.isSecureContext){ await navigator.clipboard.writeText(text); return true; }
+  }catch(err){ /* on tente le repli ci-dessous */ }
+  try{
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly','');
+    ta.style.position='fixed'; ta.style.top='-1000px'; ta.style.opacity='0';
+    document.body.appendChild(ta);
+    ta.select(); ta.setSelectionRange(0, ta.value.length);
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    return ok;
+  }catch(err){ return false; }
 }
 
 let topmostZ = 70;
@@ -119,7 +232,7 @@ const PERIOD_ITEMS = [];
 
 
 let ALL_ITEMS = EVENTS.concat(PERIOD_ITEMS);
-function rebuildAllItems(){ ALL_ITEMS = EVENTS.concat(PERIOD_ITEMS); schedulePersist(); }
+function rebuildAllItems(){ ALL_ITEMS = EVENTS.concat(PERIOD_ITEMS); invalidateTitleIndex(); schedulePersist(); }
 function genId(prefix){ return prefix+'_'+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
 
 /* ---------- Calendrier (pour la précision mois / jour) ---------- */
@@ -393,9 +506,15 @@ function drawEras(){
 const OVERVIEW_THRESHOLD_YEARS = 1200;
 let overviewFilterEnabled = true;
 let overviewCats = new Set(['personnage']);
+/* Condition supplémentaire (v0.9.5) : catégories qui ne s'affichent pas d'elles-mêmes mais
+   restreignent celles ci-dessus. « Personnage » au-dessus et « Religion » ici : seuls les éléments
+   qui portent les deux restent au premier plan en vue très dézoomée. Plusieurs catégories ici
+   élargissent la condition (il suffit d'en porter une), sinon la frise se viderait d'un coup. */
+let overviewRequiredCats = new Set();
 function isItemEmphasized(it){
   if(overviewFilterEnabled && (viewEnd-viewStart) > OVERVIEW_THRESHOLD_YEARS){
-    return itemInCats(it, overviewCats);
+    if(!itemInCats(it, overviewCats)) return false;
+    if(overviewRequiredCats.size && !itemInCats(it, overviewRequiredCats)) return false;
   }
   return true;
 }
@@ -1008,7 +1127,7 @@ function addCategory(name, color){
 function updateCategoryColor(key,color){
   if(!CATS[key] || CATS[key].locked) return;
   CATS[key].color = color;
-  renderFilterChips(); renderSearchCatChips(); renderCatFormChips(); renderOverviewCatsList(); renderExportCatsList();
+  renderFilterChips(); renderSearchCatChips(); renderCatFormChips(); renderOverviewCatsList(); renderOverviewFilterList(); renderExportCatsList();
   render();
   schedulePersist();
 }
@@ -1017,7 +1136,7 @@ function updateCategoryLabel(key,label){
   const trimmed = label.trim();
   if(!trimmed) return;
   CATS[key].label = trimmed;
-  renderFilterChips(); renderSearchCatChips(); renderCatFormChips(); renderOverviewCatsList(); renderExportCatsList();
+  renderFilterChips(); renderSearchCatChips(); renderCatFormChips(); renderOverviewCatsList(); renderOverviewFilterList(); renderExportCatsList();
   render();
   schedulePersist();
 }
@@ -1036,8 +1155,9 @@ function deleteCategory(key, mode){
   PERIOD_ITEMS.forEach(normalizeItemCats);
   activeCats.delete(key); activeCats.add('sans_categorie');
   searchCats.delete(key);
+  overviewCats.delete(key); overviewRequiredCats.delete(key);
   selectedCatKeys = selectedCatKeys.filter(k=>k!==key);
-  renderFilterChips(); renderSearchCatChips(); renderCatFormChips(); renderCatManageList(); renderOverviewCatsList(); renderExportCatsList();
+  renderFilterChips(); renderSearchCatChips(); renderCatFormChips(); renderCatManageList(); renderOverviewCatsList(); renderOverviewFilterList(); renderExportCatsList();
   rebuildAllItems();
   updateEventCounterBadge();
   render();
@@ -1138,6 +1258,13 @@ const STRINGS = {
     mapAddModeLabel:"Ajouter un événement ici",
     prevLabel:"Événement précédent", nextLabel:"Événement suivant",
     mapBtnTitle:"Voir sur la carte",
+    copyLinkTitle:"Copier le lien de cet événement",
+    linkCopied:"Lien copié : collez-le dans une note ou ailleurs",
+    linkCopyFailed:"Le presse-papiers n'est pas accessible ici",
+    eventNotFound:"Cet événement n'existe pas sur cet appareil",
+    goToEventTitle:(t)=>`Aller à « ${t} »`,
+    overviewFilterLabel:"Condition supplémentaire",
+    overviewFilterHint:"Ces catégories ne s'affichent pas d'elles-mêmes : elles restreignent les précédentes. Avec « Personnage » au-dessus et « Religion » ici, seuls les personnages également classés en religion restent au premier plan. Plusieurs catégories ici élargissent la condition : il suffit d'en porter une.",
     catPrimaryTitle:"Catégorie principale (couleur sur la frise)", catMakePrimaryTitle:"Définir comme catégorie principale",
     catNoneSelected:"(aucune sélectionnée)",
     catMultiHint:"Plusieurs catégories possibles. La catégorie marquée ★ donne sa couleur à l'élément ; touchez ☆ pour en changer.",
@@ -1189,6 +1316,13 @@ const STRINGS = {
     mapAddModeLabel:"Add an event here",
     prevLabel:"Previous event", nextLabel:"Next event",
     mapBtnTitle:"View on map",
+    copyLinkTitle:"Copy this event's link",
+    linkCopied:"Link copied — paste it in a note or anywhere else",
+    linkCopyFailed:"The clipboard is not available here",
+    eventNotFound:"This event does not exist on this device",
+    goToEventTitle:(t)=>`Go to \u201C${t}\u201D`,
+    overviewFilterLabel:"Extra condition",
+    overviewFilterHint:"These categories never show on their own: they narrow the ones above. With \u201CCharacter\u201D above and \u201CReligion\u201D here, only characters also filed under religion stay in the foreground. Several categories here widen the condition: carrying one is enough.",
     catPrimaryTitle:"Main category (colour on the timeline)", catMakePrimaryTitle:"Set as main category",
     catNoneSelected:"(none selected)",
     catMultiHint:"Several categories allowed. The one marked ★ gives the item its colour; tap ☆ to change it.",
@@ -1240,6 +1374,13 @@ const STRINGS = {
     mapAddModeLabel:"Añadir un evento aquí",
     prevLabel:"Evento anterior", nextLabel:"Evento siguiente",
     mapBtnTitle:"Ver en el mapa",
+    copyLinkTitle:"Copiar el enlace de este evento",
+    linkCopied:"Enlace copiado: péguelo en una nota o donde quiera",
+    linkCopyFailed:"El portapapeles no está disponible aquí",
+    eventNotFound:"Este evento no existe en este dispositivo",
+    goToEventTitle:(t)=>`Ir a \u00AB${t}\u00BB`,
+    overviewFilterLabel:"Condición adicional",
+    overviewFilterHint:"Estas categorías no se muestran por sí solas: restringen las anteriores. Con \u00ABPersonaje\u00BB arriba y \u00ABReligión\u00BB aquí, solo los personajes también clasificados en religión quedan en primer plano. Varias categorías aquí amplían la condición: basta con pertenecer a una.",
     catPrimaryTitle:"Categoría principal (color en la línea de tiempo)", catMakePrimaryTitle:"Definir como categoría principal",
     catNoneSelected:"(ninguna seleccionada)",
     catMultiHint:"Se permiten varias categorías. La marcada con ★ da su color al elemento; toca ☆ para cambiarla.",
@@ -1291,6 +1432,13 @@ const STRINGS = {
     mapAddModeLabel:"在此处添加事件",
     prevLabel:"上一个事件", nextLabel:"下一个事件",
     mapBtnTitle:"在地图上查看",
+    copyLinkTitle:"复制此事件的链接",
+    linkCopied:"链接已复制，可粘贴到笔记或其他位置",
+    linkCopyFailed:"此处无法使用剪贴板",
+    eventNotFound:"此设备上不存在该事件",
+    goToEventTitle:(t)=>`跳转到“${t}”`,
+    overviewFilterLabel:"附加条件",
+    overviewFilterHint:"这些分类本身不会显示，它们只用来收窄上面的选择。上面选“人物”、这里选“宗教”，则只有同时属于两者的人物才留在前景。这里选多个分类会放宽条件：属于其中之一即可。",
     catPrimaryTitle:"主分类（时间轴上的颜色）", catMakePrimaryTitle:"设为主分类",
     catNoneSelected:"（未选择）",
     catMultiHint:"可选择多个分类。带 ★ 的分类决定元素的颜色；点击 ☆ 可更改。",
@@ -1388,6 +1536,9 @@ function applyLanguage(lang){
   document.getElementById('d-prev').title = s.prevLabel;
   document.getElementById('d-next').title = s.nextLabel;
   document.getElementById('dbl-map-btn').title = s.mapBtnTitle;
+  document.getElementById('dbl-copy-link').title = s.copyLinkTitle;
+  document.getElementById('overview-filter-label').textContent = s.overviewFilterLabel;
+  document.getElementById('overview-filter-hint').textContent = s.overviewFilterHint;
   document.getElementById('d-map-btn').title = s.mapBtnTitle;
   document.getElementById('dbl-expand-label').textContent =
     detailBarLandscape.classList.contains('expanded') ? s.expandLessLabel : s.expandMoreLabel;
@@ -1433,7 +1584,9 @@ const SETTINGS_KEY = 'frise-settings';
 function saveSettings(){
   try{
     localStorage.setItem(SETTINGS_KEY, JSON.stringify({
-      lang: currentLang, dark: isDarkMode, timelineImages: timelineShowImages, bibleTarget
+      lang: currentLang, dark: isDarkMode, timelineImages: timelineShowImages, bibleTarget,
+      overviewEnabled: overviewFilterEnabled,
+      overviewCats: [...overviewCats], overviewRequiredCats: [...overviewRequiredCats]
     }));
   }catch(err){ /* stockage indisponible (navigation privée…) : les réglages restent valables pour la session */ }
 }
@@ -1443,6 +1596,14 @@ function loadSettings(){
   if(!st) return;
   if(typeof st.timelineImages==='boolean'){ timelineShowImages = st.timelineImages; timelineImagesToggle.checked = st.timelineImages; }
   if(st.bibleTarget==='web' || st.bibleTarget==='app'){ bibleTarget = st.bibleTarget; bibleTargetSelect.value = st.bibleTarget; }
+  // Vue globale : ces choix décident de ce qui s'affiche au démarrage, ils doivent survivre à la fermeture
+  if(Array.isArray(st.overviewCats)) overviewCats = new Set(st.overviewCats);
+  if(Array.isArray(st.overviewRequiredCats)) overviewRequiredCats = new Set(st.overviewRequiredCats);
+  if(typeof st.overviewEnabled==='boolean'){
+    overviewFilterEnabled = st.overviewEnabled;
+    overviewToggle.checked = st.overviewEnabled;
+  }
+  renderOverviewCatsList(); renderOverviewFilterList();
   if(st.lang && STRINGS[st.lang]) applyLanguage(st.lang);
   if(typeof st.dark==='boolean' && st.dark!==isDarkMode){
     darkModeToggle.checked = st.dark;
@@ -1478,6 +1639,7 @@ function renderOverviewCatsList(){
       if(overviewCats.has(key)) overviewCats.delete(key); else overviewCats.add(key);
       renderOverviewCatsList();
       render();
+      saveSettings();
     };
     overviewCatsListEl.appendChild(chip);
   });
@@ -1486,8 +1648,43 @@ function renderOverviewCatsList(){
 overviewToggle.addEventListener('change', ()=>{
   overviewFilterEnabled = overviewToggle.checked;
   renderOverviewCatsList();
+  renderOverviewFilterList();
   render();
+  saveSettings();
 });
+const overviewFilterListEl = document.getElementById('overview-filter-list');
+function renderOverviewFilterList(){
+  overviewFilterListEl.innerHTML='';
+  overviewFilterListEl.style.opacity = overviewFilterEnabled ? '1' : '0.4';
+  overviewFilterListEl.style.pointerEvents = overviewFilterEnabled ? 'auto' : 'none';
+  Object.entries(CATS).forEach(([key,c])=>{
+    const chip=document.createElement('div');
+    chip.className='chip'+(overviewRequiredCats.has(key)?' active':'');
+    chip.innerHTML=`<span class="dot" style="background:${c.color}"></span>${escapeHtml(c.label)}`;
+    chip.onclick=()=>{
+      if(overviewRequiredCats.has(key)) overviewRequiredCats.delete(key); else overviewRequiredCats.add(key);
+      renderOverviewFilterList();
+      render();
+      saveSettings();
+    };
+    overviewFilterListEl.appendChild(chip);
+  });
+  document.getElementById('overview-filter-toggle-count').textContent =
+    overviewRequiredCats.size>0 ? `(${overviewRequiredCats.size})` : '';
+}
+const overviewFilterToggleBtn = document.getElementById('overview-filter-toggle');
+overviewFilterToggleBtn.addEventListener('click', (ev)=>{
+  ev.stopPropagation();
+  const open = overviewFilterListEl.classList.toggle('open');
+  overviewFilterToggleBtn.classList.toggle('open', open);
+});
+document.addEventListener('click', e=>{
+  if(!e.target.closest('#overview-filter-toggle') && !e.target.closest('#overview-filter-list')){
+    overviewFilterListEl.classList.remove('open');
+    overviewFilterToggleBtn.classList.remove('open');
+  }
+});
+
 const overviewCatsToggleBtn = document.getElementById('overview-cats-toggle');
 overviewCatsToggleBtn.addEventListener('click', (ev)=>{
   ev.stopPropagation();
@@ -1501,6 +1698,7 @@ document.addEventListener('click', e=>{
   }
 });
 renderOverviewCatsList();
+renderOverviewFilterList();
 
 /* ---------- Envoyer / Recevoir : export et import de données au format JSON ---------- */
 let exportCats = new Set();
@@ -1983,7 +2181,7 @@ function openDetail(item){
 function openDetailPanelPortrait(item){
   document.getElementById('d-title').textContent=item.t;
   document.getElementById('d-date').textContent = dateLabelFor(item);
-  document.getElementById('d-desc').textContent=item.d || '';
+  renderNote(document.getElementById('d-desc'), item.d);
   renderNote(document.getElementById('d-note'), item.note); // portrait : la note reste visible en permanence
   document.getElementById('d-cats').innerHTML = itemCats(item).map((k,i)=>{
     const c = catOf(k);
@@ -2017,7 +2215,7 @@ function setLandscapeBarOpen(open){
 function openDetailBarLandscape(item){
   document.getElementById('dbl-title').textContent = item.t;
   document.getElementById('dbl-date').textContent = dateLabelFor(item);
-  document.getElementById('dbl-desc').textContent = item.d || '';
+  renderNote(document.getElementById('dbl-desc'), item.d);
   // Paysage : la note n'apparaît qu'en vue détaillée (le CSS la masque tant que le bandeau n'est pas déplié)
   renderNote(document.getElementById('dbl-note'), item.note);
 
@@ -2060,6 +2258,11 @@ document.getElementById('dbl-expand-toggle').onclick = ()=>{
   const expanded = detailBarLandscape.classList.toggle('expanded');
   document.getElementById('dbl-expand-label').textContent = expanded ? T().expandLessLabel : T().expandMoreLabel;
 };
+document.getElementById('dbl-copy-link').onclick = async ()=>{
+  if(!currentDetailItem) return;
+  const ok = await copyText(eventLink(currentDetailItem));
+  showToast(ok ? T().linkCopied : T().linkCopyFailed);
+};
 document.getElementById('dbl-edit').onclick = ()=>{
   if(currentDetailItem) openEditModal(currentDetailItem);
 };
@@ -2088,6 +2291,20 @@ function navigateRelative(delta){
 }
 detailBarLandscape.addEventListener('transitionend', (e)=>{
   if(e.propertyName==='height') resize();
+});
+
+// Un renvoi ouvre l'événement visé sans recharger la page
+document.addEventListener('click', (e)=>{
+  const tag = e.target.closest && e.target.closest('.note-event');
+  if(!tag) return;
+  e.preventDefault();
+  const it = findEventByRef(parseEventHash(new URL(tag.href, location.href).hash));
+  if(it){
+    detail.classList.remove('open');
+    goToItem(it);
+  } else {
+    showToast(T().eventNotFound);
+  }
 });
 
 document.getElementById('edit-btn').onclick = ()=>{
@@ -3040,7 +3257,7 @@ function refreshAllViews(){
   rebuildAllItems();
   activeCats = new Set(Object.keys(CATS));
   renderFilterChips(); renderSearchCatChips(); renderCatFormChips();
-  renderCatManageList(); renderOverviewCatsList(); renderExportCatsList();
+  renderCatManageList(); renderOverviewCatsList(); renderOverviewFilterList(); renderExportCatsList();
   updateEventCounterBadge();
   render();
 }
@@ -3054,6 +3271,7 @@ async function initStorage(){
       refreshAllViews();
       persistReady = true;
       await persistAll();
+      openFromHash();
     } else {
       const [storedEvents, storedPeriods, storedCats] = await Promise.all([
         db.events.toArray(), db.periods.toArray(), db.categories.toArray()
@@ -3069,12 +3287,23 @@ async function initStorage(){
       PERIOD_ITEMS.forEach(normalizeItemCats);
       refreshAllViews();
       persistReady = true;
+      openFromHash();
     }
   }catch(err){
     console.error('Bibline : échec du chargement des données locales de cet appareil', err);
     persistReady = true;
   }
 }
+
+/* Adresse ouverte depuis l'extérieur (#e=…) : on se place sur l'événement une fois les données chargées */
+function openFromHash(){
+  const ref = parseEventHash(location.hash);
+  if(!ref) return;
+  const it = findEventByRef(ref);
+  if(it) goToItem(it);
+  else showToast(T().eventNotFound);
+}
+window.addEventListener('hashchange', openFromHash);
 
 /* ---------- Init ---------- */
 document.getElementById('app-version-label').textContent = APP_VERSION;

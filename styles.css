@@ -544,6 +544,11 @@ body.dark-mode .lang-select{background-color:var(--paper-panel);}
   padding:10px;box-shadow:0 8px 24px rgba(30,37,48,0.16);
 }
 .list-cat-filter.open{display:flex;}
+/* Dans les paramètres, les deux listes de la vue globale se déplient sur place plutôt qu'en
+   surimpression : un panneau flottant recouvrait le bouton suivant, qui devenait inatteignable. */
+#overview-cats-list, #overview-filter-list{
+  position:static;margin-top:8px;width:auto;max-width:none;box-shadow:none;
+}
 .list-sort{width:max-content;}
 .side-table{max-height:60vh;overflow-y:auto;}
 .side-table-row{
@@ -649,6 +654,28 @@ body.dark-mode .lang-select{background-color:var(--paper-panel);}
   border-radius:4px;padding:0 1px;white-space:nowrap;
 }
 .note-bible:hover{background:rgba(138,106,52,0.16);text-decoration:underline;}
+
+/* ---------- Renvoi vers un autre événement (v0.9.5) ----------
+   Même famille que les versets : laiton et graisse. Le dièse et le soulignement pointillé
+   les distinguent l'un de l'autre au premier coup d'œil. */
+.note-event{
+  display:inline;color:var(--brass);font-weight:600;text-decoration:none;
+  border-bottom:1px dotted rgba(138,106,52,0.55);
+  padding:0 1px;border-radius:3px;cursor:pointer;
+}
+.note-event:hover{background:rgba(138,106,52,0.16);border-bottom-color:var(--brass);}
+.note-event .ne-icon{opacity:0.65;margin-right:1px;}
+
+/* Message fugitif (lien copié…) */
+#toast{
+  position:absolute;left:50%;transform:translateX(-50%) translateY(14px);
+  bottom:calc(26px + env(safe-area-inset-bottom));z-index:95;
+  background:var(--paper-card);border:1px solid var(--line);border-radius:22px;
+  padding:10px 20px;font-family:'Montserrat',sans-serif;font-size:12.5px;color:var(--ink-900);
+  box-shadow:0 6px 20px rgba(30,37,48,0.16);
+  opacity:0;pointer-events:none;transition:opacity .2s ease, transform .2s ease;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 .note-bible .nb-icon{font-size:0.9em;opacity:0.8;margin-right:4px;}
 .note-mention .nm-icon{font-size:0.9em;opacity:0.8;flex:none;}
 .note-mention .nm-label{overflow:hidden;text-overflow:ellipsis;}
