@@ -1,6 +1,6 @@
 (function(){
 
-const APP_VERSION = 'v0.9.3';
+const APP_VERSION = 'v0.9.4';
 
 const CATS = {
   politique:  {label:"Politique",  color:"#8A6A34"},
@@ -1426,6 +1426,9 @@ bibleTargetSelect.addEventListener('change', ()=>{
 });
 
 /* Mémorisation des réglages sur l'appareil (langue, mode sombre, images sur la carte, versets) */
+/* Ne pas renommer : cette clé identifie les réglages déjà enregistrés sur chaque appareil
+   (langue, mode sombre, images sur la frise, ouverture des versets). La renommer les remettrait
+   tous à zéro, sans aucun message, au prochain lancement. */
 const SETTINGS_KEY = 'frise-settings';
 function saveSettings(){
   try{
@@ -1555,12 +1558,12 @@ document.getElementById('export-confirm').addEventListener('click', ()=>{
   const categories = {};
   usedCats.forEach(key=>{ if(CATS[key]) categories[key] = {label:CATS[key].label, color:CATS[key].color}; });
 
-  const payload = {app:'frise-chronologique', version:2, appVersion:APP_VERSION, exportedAt:new Date().toISOString(), categories, events, periods};
+  const payload = {app:'bibline', version:2, appVersion:APP_VERSION, exportedAt:new Date().toISOString(), categories, events, periods};
   const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `frise-export-${new Date().toISOString().slice(0,10)}.json`;
+  a.download = `bibline-export-${new Date().toISOString().slice(0,10)}.json`;
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   URL.revokeObjectURL(url);
   exportOverlay.classList.remove('open');
@@ -2969,6 +2972,10 @@ minimapCanvas.addEventListener('click', e=>{
 /* Les tableaux EVENTS / PERIOD_ITEMS / CATS déclarés plus haut ne servent
    désormais que de données de démonstration pour le tout premier lancement.
    Dès qu'une base locale existe sur l'appareil, elle prend le relais. */
+/* Ne pas renommer : c'est le nom de la base locale de chaque appareil, créée dès la v0.6.
+   Un autre nom = une autre base, vide : tous les événements saisis deviendraient invisibles
+   (ils resteraient dans l'ancienne base, mais l'application ne les retrouverait plus).
+   Le nom historique n'a aucune importance visible : personne ne le voit jamais. */
 const db = new Dexie('FriseChronologiqueDB');
 db.version(1).stores({
   events: 'id, cat, y',
@@ -2997,7 +3004,7 @@ async function persistAll(){
       if(catRows.length) await db.categories.bulkPut(catRows);
     });
   }catch(err){
-    console.error('Frise : échec de la sauvegarde locale', err);
+    console.error('Bibline : échec de la sauvegarde locale', err);
   }
 }
 
@@ -3086,7 +3093,7 @@ initStorage();
   if('serviceWorker' in navigator){
     window.addEventListener('load', ()=>{
       navigator.serviceWorker.register('sw.js').catch(err=>{
-        console.warn('Frise : service worker non installé (normal en local sans serveur)', err);
+        console.warn('Bibline : service worker non installé (normal en local sans serveur)', err);
       });
     });
   }

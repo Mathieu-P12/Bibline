@@ -1,5 +1,5 @@
 {
-  "app": "frise-chronologique",
+  "app": "bibline",
   "version": 2,
   "_lisezmoi": "Contenu livré avec Bibline : il n'est installé que lors du tout premier lancement sur un appareil, lorsque la base locale est encore vide. Ensuite, c'est la base locale de l'appareil qui fait foi : modifier ce fichier ne touche jamais aux événements déjà saisis. Le format est celui des exports (bouton « Envoyer » dans les paramètres), donc ce fichier peut être régénéré depuis l'application.",
   "categories": {},
