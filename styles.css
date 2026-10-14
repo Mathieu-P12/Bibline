@@ -545,9 +545,12 @@ body.dark-mode .lang-select{background-color:var(--paper-panel);}
 }
 .list-cat-filter.open{display:flex;}
 /* Dans les paramètres, les deux listes de la vue globale se déplient sur place plutôt qu'en
-   surimpression : un panneau flottant recouvrait le bouton suivant, qui devenait inatteignable. */
+   surimpression : un panneau flottant recouvrait le bouton suivant, qui devenait inatteignable.
+   Leur conteneur prend toute la largeur disponible, sinon il s'ajuste au contenu et les puces
+   s'alignent en une seule rangée qui file vers la droite au lieu de revenir à la ligne. */
+.overview-dropdown{width:100%;}
 #overview-cats-list, #overview-filter-list{
-  position:static;margin-top:8px;width:auto;max-width:none;box-shadow:none;
+  position:static;margin-top:8px;width:100%;max-width:none;box-shadow:none;
 }
 .list-sort{width:max-content;}
 .side-table{max-height:60vh;overflow-y:auto;}

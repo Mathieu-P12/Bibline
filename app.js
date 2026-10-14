@@ -1,6 +1,6 @@
 (function(){
 
-const APP_VERSION = 'v0.9.5';
+const APP_VERSION = 'v0.9.6';
 
 const CATS = {
   politique:  {label:"Politique",  color:"#8A6A34"},
@@ -1644,6 +1644,14 @@ function renderOverviewCatsList(){
     overviewCatsListEl.appendChild(chip);
   });
   document.getElementById('overview-cats-toggle-count').textContent = overviewCats.size>0 ? `(${overviewCats.size})` : '';
+  // Sans catégorie cochée, la condition supplémentaire n'aurait rien à restreindre : on la masque
+  const filterBlock = document.getElementById('overview-filter-block');
+  const show = overviewCats.size>0;
+  filterBlock.style.display = show ? 'block' : 'none';
+  if(!show){
+    overviewFilterListEl.classList.remove('open');
+    overviewFilterToggleBtn.classList.remove('open');
+  }
 }
 overviewToggle.addEventListener('change', ()=>{
   overviewFilterEnabled = overviewToggle.checked;
@@ -1672,6 +1680,13 @@ function renderOverviewFilterList(){
   document.getElementById('overview-filter-toggle-count').textContent =
     overviewRequiredCats.size>0 ? `(${overviewRequiredCats.size})` : '';
 }
+/* Chaque clic sur une puce reconstruit la liste : la puce cliquée disparaît du document avant que
+   le clic n'y remonte, si bien que le gestionnaire général ne la reconnaissait plus comme
+   « intérieure » au menu et refermait celui-ci. On arrête donc le clic au niveau de la liste.
+   Sans cela, il fallait rouvrir le menu après chaque catégorie cochée. */
+overviewCatsListEl.addEventListener('click', e=>e.stopPropagation());
+overviewFilterListEl.addEventListener('click', e=>e.stopPropagation());
+
 const overviewFilterToggleBtn = document.getElementById('overview-filter-toggle');
 overviewFilterToggleBtn.addEventListener('click', (ev)=>{
   ev.stopPropagation();
@@ -1748,6 +1763,28 @@ document.getElementById('export-select-all').addEventListener('click', ()=>{
   renderExportCatsList();
 });
 
+/* Nom de fichier lisible, fondé sur ce qui est exporté :
+   une seule catégorie → bibline-personnage-2026-10-14.json
+   plusieurs           → bibline-categories-2026-10-14.json
+   toutes              → bibline-all-categories-2026-10-14.json
+   Les accents, espaces et signes sont ramenés à des tirets : certains systèmes de fichiers et
+   certains services de synchronisation les acceptent mal. */
+function fileSafe(name){
+  return normalize(String(name||''))
+    .replace(/[^a-z0-9]+/g,'-')
+    .replace(/^-+|-+$/g,'') || 'categorie';
+}
+function exportFileName(){
+  const total = Object.keys(CATS).length;
+  const n = exportCats.size;
+  const date = new Date().toISOString().slice(0,10);
+  let part;
+  if(n===0 || n===total) part = 'all-categories';
+  else if(n===1) part = fileSafe(CATS[[...exportCats][0]] ? CATS[[...exportCats][0]].label : '');
+  else part = 'categories';
+  return `bibline-${part}-${date}.json`;
+}
+
 document.getElementById('export-confirm').addEventListener('click', ()=>{
   const wanted = exportCats.size>0 ? exportCats : null;
   const events = EVENTS.filter(e=>!wanted || itemInCats(e, wanted)).map(({id, ...rest})=>rest);
@@ -1761,7 +1798,7 @@ document.getElementById('export-confirm').addEventListener('click', ()=>{
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `bibline-export-${new Date().toISOString().slice(0,10)}.json`;
+  a.download = exportFileName();
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   URL.revokeObjectURL(url);
   exportOverlay.classList.remove('open');
