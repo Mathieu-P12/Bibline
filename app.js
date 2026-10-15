@@ -1,6 +1,19 @@
 (function(){
 
-const APP_VERSION = 'v0.9.6';
+const APP_VERSION = 'v0.10.0';
+
+/* ---------- Arbre généalogique (v0.10) ----------
+   Tout le code de l'arbre est dans arbre.js, chargé avant ce fichier. Si arbre.js manquait ou plantait,
+   TREE deviendrait un ensemble de méthodes qui ne font rien : la frise continuerait de fonctionner, sans l'arbre.
+   La section « Arbre généalogique » (juste avant « Init », plus bas) est le seul point de contact entre les deux. */
+const TREE_OFF = {
+  init:()=>false, open(){}, close(){}, isOpen:()=>false, langChanged(){}, itemsChanged(){},
+  getState:()=>null, setState(){}, loadFailed(){}, seedIfNeeded:()=>null, seedMessage:()=>null,
+  exportFor:()=>null, importFrom:()=>({fiches:0, familles:0})
+};
+const TREE = window.BiblineArbre || TREE_OFF;
+let treeReady = false;   // devient vrai quand arbre.js a accepté init() : sans cela, rien de généalogique n'est lu ni écrit
+let genealogyLoaded = false;   // devient vrai une fois la base généalogique lue sans erreur : avant cela, on n'y écrit jamais
 
 const CATS = {
   politique:  {label:"Politique",  color:"#8A6A34"},
@@ -38,6 +51,8 @@ function catOf(key){ return CATS[key] || CATS.sans_categorie; }
 function itemCats(it){ return (Array.isArray(it.cats) && it.cats.length) ? it.cats : [it.cat || 'sans_categorie']; }
 function itemHasCat(it, key){ return itemCats(it).includes(key); }
 function itemInCats(it, set){ return itemCats(it).some(k=>set.has(k)); }
+// Un personnage de l'arbre généalogique est un élément ordinaire de la catégorie « Personnage »
+function isPersonItem(it){ return itemHasCat(it, 'personnage'); }
 function normalizeItemCats(it){
   let arr = (Array.isArray(it.cats) && it.cats.length) ? it.cats.slice() : [it.cat || 'sans_categorie'];
   arr = [...new Set(arr.filter(k=>CATS[k]))];
@@ -232,7 +247,7 @@ const PERIOD_ITEMS = [];
 
 
 let ALL_ITEMS = EVENTS.concat(PERIOD_ITEMS);
-function rebuildAllItems(){ ALL_ITEMS = EVENTS.concat(PERIOD_ITEMS); invalidateTitleIndex(); schedulePersist(); }
+function rebuildAllItems(){ ALL_ITEMS = EVENTS.concat(PERIOD_ITEMS); invalidateTitleIndex(); schedulePersist(); TREE.itemsChanged(); }
 function genId(prefix){ return prefix+'_'+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
 
 /* ---------- Calendrier (pour la précision mois / jour) ---------- */
@@ -1277,8 +1292,8 @@ const STRINGS = {
     accNote:"Note", noteHelp:"Les adresses internet s'affichent sous forme de mention compacte, et les versets cités (ex : Gen 3:15) deviennent des liens vers JW Library.",
     notePlaceholder:"Note personnelle, réflexions, liens…",
     catManageBtn:"⚙ Gérer les catégories",
-    familyTreeLabel:"Arbre généalogique", familyTreeSoon:"bientôt",
-    familyTreeNote:"L'arbre généalogique arrivera dans une prochaine version : ce bouton y mènera.",
+    familyTreeLabel:"Arbre généalogique", railTreeTitle:"Arbre généalogique",
+    treeFromDetailTitle:"Voir dans l'arbre généalogique", treeFromDetailLabel:"Voir dans l'arbre",
     bibleRowLabel:"Ouvrir les versets dans", bibleRowSub:"JW Library si l'application est installée, sinon jw.org",
   },
   en:{
@@ -1335,8 +1350,8 @@ const STRINGS = {
     accNote:"Note", noteHelp:"Web addresses appear as a compact mention, and verses cited here (e.g. Gen 3:15) become JW Library links.",
     notePlaceholder:"Personal note, thoughts, links…",
     catManageBtn:"⚙ Manage categories",
-    familyTreeLabel:"Family tree", familyTreeSoon:"soon",
-    familyTreeNote:"The family tree is coming in a future version; this button will lead to it.",
+    familyTreeLabel:"Family tree", railTreeTitle:"Family tree",
+    treeFromDetailTitle:"Show in the family tree", treeFromDetailLabel:"Show in the tree",
     bibleRowLabel:"Open verses in", bibleRowSub:"JW Library if the app is installed, otherwise jw.org",
   },
   es:{
@@ -1393,8 +1408,8 @@ const STRINGS = {
     accNote:"Nota", noteHelp:"Las direcciones de internet aparecen como una mención compacta, y los versículos citados (ej.: Gén 3:15) se convierten en enlaces a JW Library.",
     notePlaceholder:"Nota personal, reflexiones, enlaces…",
     catManageBtn:"⚙ Gestionar categorías",
-    familyTreeLabel:"Árbol genealógico", familyTreeSoon:"pronto",
-    familyTreeNote:"El árbol genealógico llegará en una próxima versión; este botón llevará a él.",
+    familyTreeLabel:"Árbol genealógico", railTreeTitle:"Árbol genealógico",
+    treeFromDetailTitle:"Ver en el árbol genealógico", treeFromDetailLabel:"Ver en el árbol",
     bibleRowLabel:"Abrir los versículos en", bibleRowSub:"JW Library si la aplicación está instalada; si no, jw.org",
   },
   zh:{
@@ -1451,8 +1466,8 @@ const STRINGS = {
     accNote:"笔记", noteHelp:"粘贴到这里的网址会显示为紧凑的提及卡片，文中引用的经文（如 Gen 3:15）会变成 JW Library 链接。",
     notePlaceholder:"个人笔记、想法、链接…",
     catManageBtn:"⚙ 管理分类",
-    familyTreeLabel:"家谱", familyTreeSoon:"即将推出",
-    familyTreeNote:"家谱将在后续版本中推出，此按钮届时会打开该视图。",
+    familyTreeLabel:"家谱", railTreeTitle:"家谱",
+    treeFromDetailTitle:"在家谱中查看", treeFromDetailLabel:"在家谱中查看",
     bibleRowLabel:"经文打开方式", bibleRowSub:"已安装 JW Library 时使用该应用，否则使用 jw.org",
   }
 };
@@ -1513,8 +1528,10 @@ function applyLanguage(lang){
   document.getElementById('f-note').placeholder = s.notePlaceholder;
   document.getElementById('cat-manage-btn').textContent = s.catManageBtn;
   document.getElementById('family-tree-label').textContent = s.familyTreeLabel;
-  document.getElementById('family-tree-soon').textContent = s.familyTreeSoon;
-  document.getElementById('family-tree-note').textContent = s.familyTreeNote;
+  document.getElementById('rail-tree').title = s.railTreeTitle;
+  document.getElementById('dbl-tree').title = s.treeFromDetailTitle;
+  document.getElementById('tree-link-btn').title = s.treeFromDetailTitle;
+  document.getElementById('tree-link-label').textContent = s.treeFromDetailLabel;
   document.getElementById('bible-row-label').textContent = s.bibleRowLabel;
   document.getElementById('bible-row-sub').textContent = s.bibleRowSub;
   renderCatFormChips();
@@ -1543,6 +1560,7 @@ function applyLanguage(lang){
   document.getElementById('dbl-expand-label').textContent =
     detailBarLandscape.classList.contains('expanded') ? s.expandLessLabel : s.expandMoreLabel;
   updateEventCounterBadge();
+  TREE.langChanged(lang);   // l'arbre a ses propres textes, dans les mêmes quatre langues
 }
 
 document.getElementById('lang-select').addEventListener('change', (e)=>{
@@ -1787,13 +1805,20 @@ function exportFileName(){
 
 document.getElementById('export-confirm').addEventListener('click', ()=>{
   const wanted = exportCats.size>0 ? exportCats : null;
-  const events = EVENTS.filter(e=>!wanted || itemInCats(e, wanted)).map(({id, ...rest})=>rest);
-  const periods = PERIOD_ITEMS.filter(p=>!wanted || itemInCats(p, wanted)).map(({id, ...rest})=>rest);
+  const pickedEvents = EVENTS.filter(e=>!wanted || itemInCats(e, wanted));
+  const pickedPeriods = PERIOD_ITEMS.filter(p=>!wanted || itemInCats(p, wanted));
+  // Un personnage emporte son identifiant actuel sous le nom « gid » : à l'arrivée, c'est lui qui permet de refaire les liens familiaux
+  const forFile = ({id, ...rest}) => isPersonItem(rest) ? {...rest, gid:id} : rest;
+  const events = pickedEvents.map(forFile);
+  const periods = pickedPeriods.map(forFile);
   const usedCats = new Set([...events.flatMap(e=>itemCats(e)), ...periods.flatMap(p=>itemCats(p))]);
   const categories = {};
   usedCats.forEach(key=>{ if(CATS[key]) categories[key] = {label:CATS[key].label, color:CATS[key].color}; });
 
   const payload = {app:'bibline', version:2, appVersion:APP_VERSION, exportedAt:new Date().toISOString(), categories, events, periods};
+  const personIds = new Set([...pickedEvents, ...pickedPeriods].filter(isPersonItem).map(x=>x.id));
+  const genealogie = (treeReady && personIds.size) ? TREE.exportFor(personIds) : null;
+  if(genealogie) payload.genealogie = genealogie;   // fiches et familles des seuls personnages exportés
   const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -1827,17 +1852,27 @@ document.getElementById('import-file-input').addEventListener('change', (e)=>{
         });
       }
       let importedEvents=0, importedPeriods=0;
+      const idMap = new Map();   // identifiant que portait l'élément dans le fichier (« gid ») → identifiant attribué ici
       // Fichiers v0.6 : un seul champ "cat" ; fichiers v0.7 : tableau "cats" — normalizeItemCats gère les deux
       (data.events||[]).forEach(ev=>{
-        EVENTS.push(normalizeItemCats({...ev, id:genId('e'), isPeriod:false}));
+        const {gid, ...rest} = ev || {};
+        const item = normalizeItemCats({...rest, id:genId('e'), isPeriod:false});
+        if(gid!=null) idMap.set(String(gid), item.id);
+        EVENTS.push(item);
         importedEvents++;
       });
       (data.periods||[]).forEach(p=>{
-        PERIOD_ITEMS.push(normalizeItemCats({...p, id:genId('p'), isPeriod:true}));
+        const {gid, ...rest} = p || {};
+        const item = normalizeItemCats({...rest, id:genId('p'), isPeriod:true});
+        if(gid!=null) idMap.set(String(gid), item.id);
+        PERIOD_ITEMS.push(item);
         importedPeriods++;
       });
+      // Liens familiaux du fichier (v0.10) : seuls les personnages présents dans le fichier sont reliés
+      const links = (treeReady && data.genealogie) ? TREE.importFrom(data.genealogie, idMap) : null;
       refreshAllViews();
-      statusEl.textContent = `${importedEvents} événement(s) et ${importedPeriods} période(s) importés avec succès.`;
+      statusEl.textContent = `${importedEvents} événement(s) et ${importedPeriods} période(s) importés avec succès.`
+        + (links && (links.fiches || links.familles) ? ` Arbre généalogique : ${links.fiches} fiche(s) et ${links.familles} famille(s) reliées.` : '');
     }catch(err){
       statusEl.textContent = "Ce fichier n'a pas pu être lu : vérifiez qu'il s'agit bien d'un export de cette application.";
     }
@@ -2194,6 +2229,13 @@ function dateLabelFor(item){
 }
 function sortTimeOf(it){ return it.isPeriod ? it.start : it.y; }
 
+// Les boutons « voir dans l'arbre » (fiche portrait et bandeau paysage) n'existent que pour un personnage
+function syncTreeButtons(item){
+  const show = treeReady && !!item && isPersonItem(item);
+  document.getElementById('tree-link-btn').style.display = show ? '' : 'none';
+  document.getElementById('dbl-tree').style.display = show ? '' : 'none';
+}
+
 // Bascule le volet ouvert d'une présentation à l'autre quand l'appareil change d'orientation
 function syncDetailOrientation(){
   if(!uiReady || !currentDetailItem) return;
@@ -2236,6 +2278,7 @@ function openDetailPanelPortrait(item){
 
   const dMapBtn = document.getElementById('d-map-btn');
   dMapBtn.style.display = (item.lat!=null && item.lng!=null) ? 'flex' : 'none';
+  syncTreeButtons(item);
 
   detail.classList.add('open');
 }
@@ -2285,6 +2328,7 @@ function openDetailBarLandscape(item){
 
   const mapBtn = document.getElementById('dbl-map-btn');
   mapBtn.style.display = (item.lat!=null && item.lng!=null) ? 'flex' : 'none';
+  syncTreeButtons(item);
 
   detailBarLandscape.classList.remove('expanded');
   document.getElementById('dbl-expand-label').textContent = T().expandMoreLabel;
@@ -2302,6 +2346,13 @@ document.getElementById('dbl-copy-link').onclick = async ()=>{
 };
 document.getElementById('dbl-edit').onclick = ()=>{
   if(currentDetailItem) openEditModal(currentDetailItem);
+};
+// « Voir dans l'arbre » : ouvre l'arbre généalogique sur le personnage affiché
+document.getElementById('dbl-tree').onclick = ()=>{
+  if(currentDetailItem) TREE.open(currentDetailItem.id);
+};
+document.getElementById('tree-link-btn').onclick = ()=>{
+  if(currentDetailItem) TREE.open(currentDetailItem.id);
 };
 document.getElementById('dbl-map-btn').onclick = ()=>{
   const item = currentDetailItem;
@@ -2384,6 +2435,7 @@ const catAddBtn = document.getElementById('cat-add-btn');
 const catNewForm = document.getElementById('cat-new-form');
 
 let editingItem = null;
+let editFromTree = false;   // vrai quand la fiche a été ouverte depuis l'arbre : l'enregistrement n'ouvre alors aucun détail derrière lui
 let editingType = 'event';
 let selectedCatKeys = []; // ordre = ordre de sélection ; la 1re est la catégorie principale (couleur)
 let formImageValue = null;
@@ -2706,6 +2758,7 @@ function openEditModal(item){
 }
 function closeEditModal(){
   editOverlay.classList.remove('open');
+  editFromTree = false;
 }
 
 document.getElementById('add-btn').addEventListener('click', ()=> openEditModal(null));
@@ -2748,6 +2801,7 @@ function parseDateFields(yearEl,monthEl,dayEl,hourEl,minuteEl){
 
 document.getElementById('edit-save').addEventListener('click', ()=>{
   clearFormError();
+  const fromTree = editFromTree;
   const title = fTitle.value.trim();
   if(!title){ showFormError('Le titre est requis.'); return; }
 
@@ -2805,7 +2859,7 @@ document.getElementById('edit-save').addEventListener('click', ()=>{
     closeEditModal();
     render();
     const updated = EVENTS.find(x=>x.id===obj.id);
-    if(updated) openDetail(updated);
+    if(updated && !fromTree) openDetail(updated);
   } else {
     const obj = {
       id: editingId || genId('p'), isPeriod:true,
@@ -2829,7 +2883,7 @@ document.getElementById('edit-save').addEventListener('click', ()=>{
     closeEditModal();
     render();
     const updated = PERIOD_ITEMS.find(x=>x.id===obj.id);
-    if(updated) openDetail(updated);
+    if(updated && !fromTree) openDetail(updated);
   }
 });
 
@@ -2984,14 +3038,14 @@ document.addEventListener('click', e=>{
 
 document.getElementById('rail-characters').addEventListener('click', ()=>{
   charListCtrl.refresh();
-  document.getElementById('family-tree-note').style.display = 'none';
   characterOverlay.classList.add('open');
 });
-// Emplacement réservé : la vue « arbre généalogique » arrivera dans une prochaine version
+// Le bouton de la liste des personnages et celui de la barre latérale mènent à l'arbre généalogique (fenêtre de arbre.js)
 document.getElementById('family-tree-btn').addEventListener('click', ()=>{
-  const note = document.getElementById('family-tree-note');
-  note.style.display = note.style.display==='block' ? 'none' : 'block';
+  characterOverlay.classList.remove('open');
+  TREE.open();
 });
+document.getElementById('rail-tree').addEventListener('click', ()=> TREE.open());
 document.getElementById('characters-close').onclick = ()=> characterOverlay.classList.remove('open');
 characterOverlay.addEventListener('click', e=>{ if(e.target===characterOverlay) characterOverlay.classList.remove('open'); });
 
@@ -3236,6 +3290,14 @@ db.version(1).stores({
   periods: 'id, cat, start',
   categories: 'key',
 });
+/* v0.10 : une table « meta » (clé → valeur) accueille la base généalogique de l'arbre (clé « genealogie »).
+   C'est un simple ajout : les événements, périodes et catégories déjà enregistrés ne sont pas touchés. */
+db.version(2).stores({
+  events: 'id, cat, y',
+  periods: 'id, cat, start',
+  categories: 'key',
+  meta: 'key',
+});
 
 let persistTimer = null;
 let persistReady = false; // reste à false tant que le chargement initial n'est pas terminé
@@ -3246,7 +3308,10 @@ function schedulePersist(){
 }
 async function persistAll(){
   try{
-    await db.transaction('rw', db.events, db.periods, db.categories, async ()=>{
+    // null = l'arbre ne doit pas être enregistré (arbre.js absent, base généalogique pas encore lue ou illisible) :
+    // la ligne déjà présente dans « meta » reste alors telle quelle, jamais remplacée par une base vide
+    const genealogy = (treeReady && genealogyLoaded) ? TREE.getState() : null;
+    await db.transaction('rw', db.events, db.periods, db.categories, db.meta, async ()=>{
       await db.events.clear();
       await db.periods.clear();
       await db.categories.clear();
@@ -3256,6 +3321,7 @@ async function persistAll(){
         {key, label:c.label, color:c.color, locked: !!c.locked, protected: !!c.protected}
       ));
       if(catRows.length) await db.categories.bulkPut(catRows);
+      if(genealogy) await db.meta.put({key:'genealogie', value:genealogy});
     });
   }catch(err){
     console.error('Bibline : échec de la sauvegarde locale', err);
@@ -3279,14 +3345,28 @@ async function fetchInitialData(){
   }
 }
 function applyInitialData(data){
-  if(!data) return;
+  // Renvoie de quoi relier la généalogie éventuelle du fichier (même principe que « Recevoir » : gid → identifiant local)
+  const out = {idMap:new Map(), genealogie:null};
+  if(!data) return out;
   if(data.categories){
     Object.entries(data.categories).forEach(([key,c])=>{
       if(!CATS[key]) CATS[key] = {label:c.label, color:c.color};
     });
   }
-  (data.events||[]).forEach((ev,i)=> EVENTS.push(normalizeItemCats({...ev, id:'e'+i, isPeriod:false})));
-  (data.periods||[]).forEach((p,i)=> PERIOD_ITEMS.push(normalizeItemCats({...p, id:'p'+i, isPeriod:true})));
+  (data.events||[]).forEach((ev,i)=>{
+    const {gid, ...rest} = ev || {};
+    const item = normalizeItemCats({...rest, id:'e'+i, isPeriod:false});
+    if(gid!=null) out.idMap.set(String(gid), item.id);
+    EVENTS.push(item);
+  });
+  (data.periods||[]).forEach((p,i)=>{
+    const {gid, ...rest} = p || {};
+    const item = normalizeItemCats({...rest, id:'p'+i, isPeriod:true});
+    if(gid!=null) out.idMap.set(String(gid), item.id);
+    PERIOD_ITEMS.push(item);
+  });
+  out.genealogie = data.genealogie || null;
+  return out;
 }
 
 // Remise à jour de tout ce qui dépend des données : listes de catégories, compteurs, frise
@@ -3299,15 +3379,40 @@ function refreshAllViews(){
   render();
 }
 
+/* Base généalogique : lecture, puis installation (une seule fois par appareil) des personnages livrés avec l'arbre.
+   Renvoie le bilan de l'installation, ou null s'il n'y avait rien à installer.
+   Si la lecture échoue, l'arbre est « verrouillé » : plus rien n'est semé ni enregistré, de sorte qu'une base
+   généalogique existante mais momentanément illisible ne soit jamais écrasée par une base vide. */
+async function loadGenealogy(fromFile){
+  if(!treeReady) return null;
+  try{
+    const row = await db.meta.get('genealogie');
+    if(row && row.value) TREE.setState(row.value);
+    genealogyLoaded = true;   // lue (ou absente : première fois) : l'enregistrer est désormais sans danger
+  }catch(err){
+    console.error("Bibline : la base généalogique n'a pas pu être lue, elle est laissée intacte", err);
+    TREE.loadFailed();
+    return null;
+  }
+  if(fromFile && fromFile.genealogie) TREE.importFrom(fromFile.genealogie, fromFile.idMap);
+  return TREE.seedIfNeeded();
+}
+function announceSeed(res){
+  const msg = res ? TREE.seedMessage(res) : null;
+  if(msg) setTimeout(()=> showToast(msg), 900);   // laisse à la frise le temps de s'afficher d'abord
+}
+
 async function initStorage(){
   try{
     const [evCount, pCount] = await Promise.all([db.events.count(), db.periods.count()]);
     if(evCount===0 && pCount===0){
       // Premier lancement sur cet appareil : le contenu livré devient la base locale
-      applyInitialData(await fetchInitialData());
+      const fromFile = applyInitialData(await fetchInitialData());
+      const seeded = await loadGenealogy(fromFile);
       refreshAllViews();
       persistReady = true;
       await persistAll();
+      announceSeed(seeded);
       openFromHash();
     } else {
       const [storedEvents, storedPeriods, storedCats] = await Promise.all([
@@ -3322,8 +3427,11 @@ async function initStorage(){
       // Migration douce v0.6 → v0.7 : chaque élément reçoit son tableau de catégories
       EVENTS.forEach(normalizeItemCats);
       PERIOD_ITEMS.forEach(normalizeItemCats);
+      const seeded = await loadGenealogy(null);
       refreshAllViews();
       persistReady = true;
+      if(seeded) await persistAll();   // personnages et liens livrés avec l'arbre : enregistrés tout de suite
+      announceSeed(seeded);
       openFromHash();
     }
   }catch(err){
@@ -3342,8 +3450,69 @@ function openFromHash(){
 }
 window.addEventListener('hashchange', openFromHash);
 
+/* ---------- Arbre généalogique (v0.10) : le point de contact avec arbre.js ----------
+   arbre.js ne touche directement ni à la frise, ni au stockage, ni aux réglages : tout passe par cet objet.
+   Un personnage est un élément ordinaire de la catégorie « Personnage » : un événement à sa naissance, ou une
+   période naissance → décès quand le décès est connu. La base généalogique (sexe, notes, familles) est à part,
+   dans la table « meta », et ne renvoie aux éléments que par leur identifiant. */
+function uniqueItemId(prefix){
+  let id;
+  do{ id = genId(prefix); }while(ALL_ITEMS.some(x=>x.id===id));
+  return id;
+}
+const treeApi = {
+  getItems: ()=> EVENTS.concat(PERIOD_ITEMS),
+  isPerson: isPersonItem,
+  // Crée l'élément sans rien redessiner ni enregistrer : l'arbre appelle ensuite commitItems()
+  addPerson(p){
+    const born = Number(p.birth);
+    const died = (p.death==null) ? null : Number(p.death);
+    const img = p.img || null;
+    const base = {
+      approx: !!p.approx, t: p.t, cat: 'personnage', cats: ['personnage'], d: p.d || '',
+      img, imgPosition: img ? (p.imgPosition || 'center center') : null,
+      link: null, locationName: null, lat: null, lng: null, bibleRefs: p.bibleRefs || null, note: null
+    };
+    let item;
+    if(died!=null && died>born){
+      item = normalizeItemCats({
+        id: uniqueItemId('p'), isPeriod: true,
+        startYear: born, startMonth: null, startDay: null, startHour: null, startMinute: null,
+        endYear: died, endMonth: null, endDay: null, endHour: null, endMinute: null,
+        start: born, end: died, ...base
+      });
+      PERIOD_ITEMS.push(item);
+    } else {
+      item = normalizeItemCats({
+        id: uniqueItemId('e'), isPeriod: false,
+        year: born, month: null, day: null, hour: null, minute: null, y: born, ...base
+      });
+      EVENTS.push(item);
+    }
+    ALL_ITEMS = EVENTS.concat(PERIOD_ITEMS);
+    invalidateTitleIndex();
+    return item;
+  },
+  commitItems(){ rebuildAllItems(); updateEventCounterBadge(); render(); },
+  requestSave: ()=> schedulePersist(),
+  catLabel: (key)=> catOf(key).label,
+  catsOf: (it)=> itemCats(it).map(k=>({key:k, label:catOf(k).label, color:catOf(k).color})),
+  dateLabel: dateLabelFor,
+  renderNote,
+  renderBibleRefs,
+  goToItem,
+  editItem(it){ editFromTree = true; openEditModal(it); },
+  toast: showToast,
+  editOpen: ()=> editOverlay.classList.contains('open')
+};
+
 /* ---------- Init ---------- */
 document.getElementById('app-version-label').textContent = APP_VERSION;
+treeReady = TREE.init(treeApi) === true;
+if(!treeReady){
+  // arbre.js absent ou inutilisable : on retire les accès à l'arbre plutôt que de laisser des boutons sans effet
+  ['rail-tree','family-tree-btn'].forEach(id=>{ document.getElementById(id).style.display = 'none'; });
+}
 loadSettings();
 uiReady = true;
 resize();

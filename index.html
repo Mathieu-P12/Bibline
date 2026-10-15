@@ -55,6 +55,10 @@
       <button type="button" class="rail-btn" id="rail-map" title="Plan">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.5 7-11.5A7 7 0 0 0 5 9.5C5 14.5 12 21 12 21z"/><circle cx="12" cy="9.4" r="2.3"/></svg>
       </button>
+      <button type="button" class="rail-btn" id="rail-tree" title="Arbre généalogique">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3.5" width="6" height="6"/><circle cx="18" cy="6.5" r="3"/><path d="M9 6.5h6M12 6.5v7M7 13.5h10M7 13.5v3M17 13.5v3"/><rect x="4" y="16.5" width="6" height="5"/><circle cx="17" cy="19" r="2.6"/></svg>
+        <span class="new-dot"></span>
+      </button>
     </div>
     <div class="rail-group">
       <button type="button" class="rail-btn" id="reset-view" title="Vue d'ensemble">
@@ -75,6 +79,9 @@
       <div id="dbl-top-actions">
         <button type="button" id="dbl-copy-link" class="dbl-icon-btn" title="Copier le lien de cet événement">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.1 13.9a4.6 4.6 0 0 0 6.9.5l2.8-2.8a4.6 4.6 0 0 0-6.5-6.5l-1.6 1.6"/><path d="M13.9 10.1a4.6 4.6 0 0 0-6.9-.5l-2.8 2.8a4.6 4.6 0 0 0 6.5 6.5l1.6-1.6"/></svg>
+        </button>
+        <button type="button" id="dbl-tree" class="dbl-icon-btn" title="Voir dans l'arbre généalogique" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3.5" width="6" height="6"/><circle cx="18" cy="6.5" r="3"/><path d="M9 6.5h6M12 6.5v7M7 13.5h10M7 13.5v3M17 13.5v3"/><rect x="4" y="16.5" width="6" height="5"/><circle cx="17" cy="19" r="2.6"/></svg>
         </button>
         <button type="button" id="dbl-edit" class="dbl-icon-btn" title="Modifier">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
@@ -139,6 +146,10 @@
     <button id="edit-btn">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
       <span id="edit-btn-label">Modifier</span>
+    </button>
+    <button type="button" id="tree-link-btn" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;"><rect x="3" y="3.5" width="6" height="6"/><circle cx="18" cy="6.5" r="3"/><path d="M9 6.5h6M12 6.5v7M7 13.5h10M7 13.5v3M17 13.5v3"/><rect x="4" y="16.5" width="6" height="5"/><circle cx="17" cy="19" r="2.6"/></svg>
+      <span id="tree-link-label">Voir dans l'arbre</span>
     </button>
     <p id="d-desc"></p>
     <div id="d-note" class="note-view"></div>
@@ -497,7 +508,7 @@
         <div class="sr-label" id="mentions-row-label" style="margin-bottom:8px;">Mentions</div>
         <div class="settings-about">
           <a class="about-repo" id="about-repo-link" href="https://github.com/Mathieu-P12/Bibline" target="_blank" rel="noopener" title="Ouvrir le dépôt du projet sur GitHub">
-            <b>Bibline</b> — <span id="app-version-label">v0.9.6</span>
+            <b>Bibline</b> — <span id="app-version-label">v0.10.0</span>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6"/><path d="M20 4l-8.5 8.5"/><path d="M19 14.5V19a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 19V6.5A1.5 1.5 0 0 1 5 5h4.5"/></svg>
           </a><br>
           Application de gestion de connaissances historiques.<br>
@@ -520,11 +531,10 @@
             <button type="button" class="seg-btn" data-sort="date_desc">Date ↓</button>
           </div>
           <button type="button" class="btn-secondary" id="family-tree-btn" title="Arbre généalogique">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;flex:none;"><circle cx="12" cy="4.6" r="2.3"/><circle cx="5.6" cy="19.4" r="2.3"/><circle cx="18.4" cy="19.4" r="2.3"/><path d="M12 6.9v4.7"/><path d="M5.6 17.1v-3.1a2.4 2.4 0 0 1 2.4-2.4h8a2.4 2.4 0 0 1 2.4 2.4v3.1"/></svg> <span id="family-tree-label">Arbre généalogique</span> <span class="soon-badge" id="family-tree-soon">bientôt</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;flex:none;"><circle cx="12" cy="4.6" r="2.3"/><circle cx="5.6" cy="19.4" r="2.3"/><circle cx="18.4" cy="19.4" r="2.3"/><path d="M12 6.9v4.7"/><path d="M5.6 17.1v-3.1a2.4 2.4 0 0 1 2.4-2.4h8a2.4 2.4 0 0 1 2.4 2.4v3.1"/></svg> <span id="family-tree-label">Arbre généalogique</span>
           </button>
         </div>
       </div>
-      <div id="family-tree-note" class="settings-about" style="display:none;margin-top:8px;">L'arbre généalogique arrivera dans une prochaine version : ce bouton y mènera.</div>
       <div id="characters-count" class="list-count"></div>
       <div id="characters-table" class="side-table"></div>
     </div>
@@ -565,9 +575,142 @@
       <div id="map-canvas" style="flex:1;min-height:0;border-radius:6px;overflow:hidden;border:1px solid var(--line);"></div>
     </div>
   </div>
+
+  <!-- ===== Arbre généalogique (v0.10) : fenêtre sur le modèle du plan. Le code est dans arbre.js ===== -->
+  <div id="tree-overlay" class="modal-overlay">
+    <div class="modal-card" id="tree-card">
+      <button type="button" id="tree-add" class="btn-secondary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;flex:none;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span data-t="addPerson">Ajouter un personnage</span>
+      </button>
+      <button type="button" id="tree-close" class="modal-close" data-tt="close" title="Fermer">✕</button>
+      <h2 data-t="title">Arbre généalogique</h2>
+      <div id="tree-toolbar">
+        <div id="tree-search-wrap">
+          <input type="text" id="tree-search" class="list-search" data-tp="searchPh" placeholder="Rechercher un personnage…" autocomplete="off" spellcheck="false">
+          <div id="tree-search-res"></div>
+        </div>
+        <button type="button" class="btn-secondary" id="tree-overview">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="width:14px;height:14px;flex:none;"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+          <span data-t="overview">Vue d'ensemble</span>
+        </button>
+        <label class="tree-ctl">
+          <span class="toggle-switch"><input type="checkbox" id="tree-wide"><span class="ts-track"></span><span class="ts-thumb"></span></span>
+          <span data-t="wide">Famille élargie</span> <span class="tree-hint" data-t="wideHint">(grands-parents, petits-enfants)</span>
+        </label>
+      </div>
+      <div id="tree-area">
+        <svg id="tree" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <clipPath id="tree-clip-m"><rect x="-23" y="-23" width="46" height="46" rx="14"/></clipPath>
+            <clipPath id="tree-clip-f"><circle r="24"/></clipPath>
+            <clipPath id="tree-clip-n"><circle r="24"/></clipPath>
+          </defs>
+          <g id="tree-viewport"><g id="tree-links"></g><g id="tree-nodes"></g></g>
+        </svg>
+        <div id="tree-empty"><b data-t="emptyTitle">Aucun personnage pour l'instant</b><span id="tree-empty-text"></span></div>
+        <button type="button" id="tree-info-btn" class="round-btn" data-tt="legendBtn" title="Signification des symboles">i</button>
+        <div id="tree-legend">
+          <div class="lg-title" data-t="legendTitle">Symboles</div>
+          <span><svg width="16" height="16" viewBox="-9 -9 18 18"><rect class="med m" x="-7" y="-7" width="14" height="14" rx="4.5" style="stroke-width:1.6"/></svg><span data-t="lgMale">Homme</span></span>
+          <span><svg width="16" height="16" viewBox="-9 -9 18 18"><circle class="med f" r="7.3" style="stroke-width:1.6"/></svg><span data-t="lgFemale">Femme</span></span>
+          <span><svg width="16" height="16" viewBox="-9 -9 18 18"><circle class="med n" r="7.3" style="stroke-width:1.6"/></svg><span data-t="lgUnknown">Non renseigné</span></span>
+          <span><svg width="30" height="12" viewBox="0 0 30 12"><path class="lk lk-union" d="M1 6H29" style="opacity:1"/><circle class="knot" cx="15" cy="6" r="3.6"/></svg><span data-t="lgUnion">Union (● départ des enfants)</span></span>
+          <span><svg width="26" height="10" viewBox="0 0 26 10"><path class="lk-dbl-o" d="M2 5H24" style="opacity:1"/><path class="lk-dbl-i" d="M2 5H24"/></svg><span data-t="lgKin">Union entre parents</span></span>
+        </div>
+        <div id="tree-zoom">
+          <button type="button" class="round-btn" id="tree-zin" data-tt="zoomIn" title="Zoom avant">+</button>
+          <button type="button" class="round-btn" id="tree-zout" data-tt="zoomOut" title="Zoom arrière">−</button>
+          <button type="button" class="round-btn" id="tree-zfit" data-tt="zoomFit" title="Tout afficher"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+        </div>
+        <div id="tree-volet">
+          <button type="button" id="tree-volet-close" class="dbl-icon-btn">✕</button>
+          <div id="tree-volet-body"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Ajout d'un personnage depuis l'arbre (au-dessus de l'arbre, sous la fiche de l'application) ===== -->
+  <div id="taf-overlay" class="modal-overlay">
+    <div class="modal-card" id="taf-card">
+      <button type="button" id="taf-close" class="modal-close">✕</button>
+      <h2 id="taf-title" data-t="addTitle">Ajouter un personnage</h2>
+      <div class="form-note" id="taf-note"></div>
+      <div id="taf-error"></div>
+
+      <div class="form-row">
+        <label><span data-t="fName">Nom</span> <span class="req">*</span></label>
+        <input type="text" id="taf-name" autocomplete="off">
+      </div>
+      <div class="form-row">
+        <label><span data-t="fBirth">Date de naissance</span> <span class="req">*</span></label>
+        <div class="date-fields">
+          <input type="text" inputmode="numeric" id="taf-birth" data-tp="fYearPh" placeholder="Année" autocomplete="off">
+          <div class="segmented era-segment" data-seg="birthEra">
+            <button type="button" class="seg-btn" data-v="bc" data-t="bce">av. n. è.</button>
+            <button type="button" class="seg-btn" data-v="ad" data-t="ce">de n. è.</button>
+          </div>
+        </div>
+        <label class="checkbox-row" style="margin-top:8px;"><input type="checkbox" id="taf-approx" checked> <span data-t="fApprox">Date approximative (« vers… »)</span></label>
+      </div>
+      <div class="form-row">
+        <label><span data-t="fDeath">Date de décès</span> <span class="taf-hint" data-t="optional">(facultatif)</span></label>
+        <div class="date-fields">
+          <input type="text" inputmode="numeric" id="taf-death" data-tp="fYearPh" placeholder="Année" autocomplete="off">
+          <div class="segmented era-segment" data-seg="deathEra">
+            <button type="button" class="seg-btn" data-v="bc" data-t="bce">av. n. è.</button>
+            <button type="button" class="seg-btn" data-v="ad" data-t="ce">de n. è.</button>
+          </div>
+        </div>
+      </div>
+      <div class="form-row">
+        <label data-t="fPhoto">Photo</label>
+        <input type="url" id="taf-photo" data-tp="fPhotoPh" placeholder="Lien de l'image (https://…)" autocomplete="off" autocapitalize="off" spellcheck="false">
+        <div class="taf-or"><span data-t="fOr">ou</span> <input type="file" id="taf-file" accept="image/*"></div>
+        <div id="taf-prev"><img alt=""><span data-t="fPhotoPrev">Aperçu : la photo sera découpée dans le symbole (carré ou rond).</span></div>
+      </div>
+      <div class="form-row">
+        <label><span data-t="fDesc">Description</span> <span class="taf-hint" data-t="fDescHint">(affichée sur la frise)</span></label>
+        <textarea id="taf-desc" rows="2"></textarea>
+      </div>
+
+      <div class="taf-section" data-t="fSection">Fiche généalogique</div>
+      <div class="form-row">
+        <label data-t="sexLabel">Sexe</label>
+        <div class="segmented" data-seg="sexe">
+          <button type="button" class="seg-btn" data-v="M" data-t="male">Homme</button>
+          <button type="button" class="seg-btn" data-v="F" data-t="female">Femme</button>
+          <button type="button" class="seg-btn" data-v="" data-t="unknownSex">Non renseigné</button>
+        </div>
+      </div>
+      <div class="form-row">
+        <label data-t="fNote">Note généalogique</label>
+        <textarea id="taf-gnote" rows="2" data-tp="fNotePh" placeholder="ex : fille de Lévi, épouse de son neveu Amram"></textarea>
+      </div>
+      <div class="form-row">
+        <label data-t="refsLabel">Références bibliques</label>
+        <input type="text" id="taf-refs" data-tp="refsPh" placeholder="ex : Gn 20:12 ; Ex 6:20" autocomplete="off" autocapitalize="off" spellcheck="false">
+      </div>
+
+      <div class="taf-section" data-t="fRels">Liens familiaux</div>
+      <div class="taf-grid">
+        <div class="form-row"><label data-t="fFather">Père</label><select id="taf-father"></select></div>
+        <div class="form-row"><label data-t="fMother">Mère</label><select id="taf-mother"></select></div>
+        <div class="form-row"><label data-t="fSpouse">Conjoint</label><select id="taf-spouse"></select></div>
+        <div class="form-row"><label data-t="fChildOf">Parent de</label><select id="taf-child"></select></div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" id="taf-cancel" data-t="cancel">Annuler</button>
+        <button type="button" class="btn-primary" id="taf-save" data-t="doAdd">Ajouter</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script src="bible-books.js"></script>
+<script src="arbre.js"></script>
 <script src="app.js"></script>
 
   <div id="toast" role="status" aria-live="polite"></div>

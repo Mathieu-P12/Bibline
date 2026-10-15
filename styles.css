@@ -19,6 +19,11 @@
   --c-religion:#48607E;
   --c-decouverte:#5C7A3C;
   --c-personnage:#9C8347;
+
+  /* Arbre généalogique (v0.10) : sexe des personnages, union */
+  --sex-m:#48607E; --sex-f:#8F4F68;
+  --tint-m:#E4E7EA; --tint-f:#EFE2E5; --tint-n:#EFE8D8;
+  --union:#3F7A72;
 }
 
 body.dark-mode{
@@ -32,6 +37,10 @@ body.dark-mode{
   --brass:#C9A961;
   --brass-bright:#DDBE7C;
   --line:rgba(201,169,97,0.28);
+
+  --sex-m:#8FA6C4; --sex-f:#C98FA5;
+  --tint-m:#262A2F; --tint-f:#2E2428; --tint-n:#2A251E;
+  --union:#79B5AB;
 }
 body.dark-mode #texture{
   background-image:
@@ -194,13 +203,14 @@ canvas.dragging{cursor:grabbing;}
   letter-spacing:0.05em;text-transform:uppercase;background:rgba(138,106,52,0.04);
 }
 #d-image img{width:100%;height:100%;object-fit:cover;}
-#edit-btn{
+#edit-btn, #tree-link-btn{
   display:inline-flex;align-items:center;gap:6px;margin-bottom:16px;
   background:var(--paper-panel);border:1px solid var(--line);color:var(--ink-700);
   font-family:'Montserrat',sans-serif;font-size:11px;letter-spacing:0.05em;
   padding:8px 14px;border-radius:20px;cursor:pointer;
 }
-#edit-btn:hover{color:var(--brass);border-color:var(--brass);}
+#edit-btn:hover, #tree-link-btn:hover{color:var(--brass);border-color:var(--brass);}
+#tree-link-btn{margin-left:6px;}
 #d-nav{
   position:absolute;left:20px;right:20px;bottom:calc(20px + env(safe-area-inset-bottom));
   display:flex;justify-content:space-between;
@@ -268,7 +278,12 @@ canvas.dragging{cursor:grabbing;}
   font-size:18px;cursor:pointer;
   display:flex;align-items:center;justify-content:center;
 }
+.rail-btn{position:relative;}
 .rail-btn:hover, .rail-btn.active{color:var(--brass);background:rgba(138,106,52,0.08);}
+.new-dot{
+  position:absolute;top:7px;right:7px;width:7px;height:7px;border-radius:50%;
+  background:var(--brass-bright);box-shadow:0 0 0 2px var(--paper-panel);pointer-events:none;
+}
 .rail-btn svg{width:20px;height:20px;flex:none;}
 #add-btn{
   width:38px;height:38px;
@@ -682,11 +697,6 @@ body.dark-mode .lang-select{background-color:var(--paper-panel);}
 .note-bible .nb-icon{font-size:0.9em;opacity:0.8;margin-right:4px;}
 .note-mention .nm-icon{font-size:0.9em;opacity:0.8;flex:none;}
 .note-mention .nm-label{overflow:hidden;text-overflow:ellipsis;}
-.soon-badge{
-  font-family:'Montserrat',sans-serif;font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;
-  padding:2px 7px;border-radius:20px;border:1px solid rgba(138,106,52,0.35);
-  background:rgba(138,106,52,0.1);color:var(--brass);
-}
 /* Ligne « tris + arbre généalogique » de la liste des personnages */
 .list-toolbar-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
 #family-tree-btn{display:inline-flex;align-items:center;gap:7px;padding:8px 14px;}
@@ -744,4 +754,270 @@ body.dark-mode .lang-select{background-color:var(--paper-panel);}
   .modal-card{padding:22px 18px;}
   .date-fields{grid-template-columns:1fr 1fr;}
   .date-fields-sub{grid-template-columns:1fr 1fr 1fr;}
+}
+/* ============================================================================
+   Arbre généalogique (v0.10)
+   Tout est préfixé #tree-… / #taf-… (ou rangé sous #tree-card) : rien ne touche
+   aux autres fenêtres. Le code correspondant est dans arbre.js.
+============================================================================ */
+#tree-overlay{z-index:52;}                    /* au-dessus des listes, sous la fiche d'édition (65) */
+#tree-card{
+  width:96vw;height:92vh;max-width:none;display:flex;flex-direction:column;
+  padding:22px 24px 20px;overflow:hidden;
+}
+#tree-card h2{margin-bottom:12px;}
+#tree-add{
+  position:absolute;top:20px;right:58px;display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:12.5px;
+}
+#tree-toolbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:12px;}
+#tree-toolbar .btn-secondary{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;font-size:12.5px;}
+#tree-search-wrap{position:relative;flex:0 1 260px;min-width:170px;}
+#tree-search-res{
+  position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:12;display:none;
+  background:var(--paper-card);border:1px solid var(--line);border-radius:6px;
+  box-shadow:0 8px 24px rgba(30,37,48,0.16);max-height:40vh;overflow-y:auto;
+}
+#tree-search-res.show{display:block;}
+#tree-search-res .res-row{
+  display:flex;align-items:center;gap:8px;padding:8px 10px;cursor:pointer;font-size:13px;color:var(--ink-900);
+  border-bottom:1px solid rgba(138,106,52,0.1);
+}
+#tree-search-res .res-row:last-child{border-bottom:none;}
+#tree-search-res .res-row:hover{background:rgba(138,106,52,0.07);}
+#tree-search-res .res-row.none{cursor:default;color:var(--slate-dim);}
+#tree-search-res .res-row.none:hover{background:none;}
+#tree-search-res .rn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+#tree-search-res .d{margin-left:auto;font-size:10.5px;color:var(--brass);white-space:nowrap;padding-left:8px;}
+.tree-ctl{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-700);cursor:pointer;}
+.tree-hint{font-size:11px;color:var(--slate-dim);}
+#tree-toolbar .toggle-switch{width:36px;height:20px;}
+#tree-toolbar .toggle-switch .ts-thumb{width:16px;height:16px;}
+#tree-toolbar .toggle-switch input:checked ~ .ts-thumb{transform:translateX(16px);}
+
+#tree-area{
+  position:relative;flex:1;min-height:0;border:1px solid var(--line);border-radius:6px;
+  overflow:hidden;background:var(--paper);
+}
+#tree{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:grab;touch-action:none;}
+#tree.dragging{cursor:grabbing;}
+#tree.dragging .node{pointer-events:none;transition:none;}
+#tree-viewport{will-change:transform;}
+#tree-viewport.anim{transition:transform .6s cubic-bezier(.2,.8,.2,1);}
+
+/* Liens : traits fins de laiton aux angles arrondis ; l'union est en vert-de-gris, doublée si les époux sont parents */
+#tree-card .lk{fill:none;stroke:var(--brass);stroke-width:1.15;stroke-linecap:round;stroke-linejoin:round;opacity:.75;transition:opacity .35s ease,stroke-width .2s;}
+#tree-card .lk-union{stroke:var(--union);stroke-width:2;opacity:.9;}
+#tree-card .lk-cross{stroke:var(--union);stroke-dasharray:1 4;stroke-width:1.6;}
+#tree-card .knot{fill:var(--union);stroke:var(--paper);stroke-width:1.6;transition:opacity .35s;}
+#tree-card .lk-dbl-o{fill:none;stroke:var(--union);stroke-width:4.4;stroke-linecap:round;stroke-linejoin:round;opacity:.75;transition:opacity .35s;}
+#tree-card .lk-dbl-i{fill:none;stroke:var(--paper);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;transition:opacity .35s;}
+/* Médaillons : carré = homme, rond = femme, rond en pointillés = non renseigné */
+#tree .node{transition:transform .5s cubic-bezier(.2,.8,.2,1),opacity .35s ease;cursor:pointer;}
+#tree-card .med{stroke-width:2;}
+#tree-card .med.m{fill:var(--tint-m);stroke:var(--sex-m);}
+#tree-card .med.f{fill:var(--tint-f);stroke:var(--sex-f);}
+#tree-card .med.n{fill:var(--tint-n);stroke:var(--brass);stroke-dasharray:3 3;}
+#tree-card .ring.m{fill:none;stroke:var(--sex-m);stroke-width:2.2;}
+#tree-card .ring.f{fill:none;stroke:var(--sex-f);stroke-width:2.2;}
+#tree-card .ring.n{fill:none;stroke:var(--brass);stroke-width:2.2;stroke-dasharray:3 3;}
+#tree .mono{font-size:15px;font-weight:600;text-anchor:middle;dominant-baseline:central;letter-spacing:.02em;pointer-events:none;}
+#tree .mono.m{fill:var(--sex-m);} #tree .mono.f{fill:var(--sex-f);} #tree .mono.n{fill:var(--brass);}
+#tree .node.loaded .mono{display:none;}
+#tree .halo{fill:none;stroke:var(--brass);stroke-width:1.4;opacity:0;transition:opacity .3s;}
+#tree .glow{fill:var(--brass);opacity:0;transition:opacity .3s;}
+#tree .node.sel .halo{opacity:1;}
+#tree .node.sel .glow{opacity:.13;}
+#tree .node:hover .med,#tree .node:hover .ring{stroke-width:3;}
+#tree .lbl{font-size:11.5px;font-weight:600;fill:var(--ink-900);text-anchor:middle;paint-order:stroke;stroke:var(--paper);stroke-width:4px;stroke-linejoin:round;}
+#tree .yrs{font-size:9.5px;fill:var(--brass);text-anchor:middle;paint-order:stroke;stroke:var(--paper);stroke-width:4px;}
+/* Mise en évidence de la famille choisie : le reste s'estompe */
+#tree.focus-mode .node:not(.fam){opacity:.16;}
+#tree.focus-mode .lnk:not(.fam) .lk,#tree.focus-mode .lnk:not(.fam) .lk-dbl-o{opacity:.1;}
+#tree.focus-mode .lnk:not(.fam) .lk-dbl-i{opacity:.4;}
+#tree.focus-mode .lnk:not(.fam) .knot{opacity:.12;}
+#tree.focus-mode .lnk.fam .lk{opacity:1;stroke-width:1.6;}
+#tree.focus-mode .lnk.fam .lk-union{stroke-width:2.6;}
+#tree.focus-mode .lnk.fam .lk-dbl-o{opacity:1;}
+/* Niveau de détail selon le zoom */
+#tree.lod1 .yrs{display:none;}
+#tree.lod2 .node:not(.fam) .lbl{display:none;}
+#tree.lod2:not(.focus-mode) .lbl{display:none;}
+
+#tree-empty{
+  position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  text-align:center;padding:30px;color:var(--slate);font-size:13px;line-height:1.6;pointer-events:none;
+}
+#tree-empty.show{display:flex;}
+#tree-empty b{font-size:15px;color:var(--ink-700);font-weight:600;}
+
+#tree-card .round-btn{
+  width:34px;height:34px;padding:0;border-radius:50%;background:var(--paper-panel);border:1px solid var(--line);
+  color:var(--slate);cursor:pointer;font-family:inherit;font-size:16px;
+  display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(30,37,48,0.1);
+}
+#tree-card .round-btn:hover{color:var(--brass);border-color:var(--brass);}
+#tree-card .round-btn svg{width:15px;height:15px;}
+#tree-info-btn{
+  position:absolute;left:12px;bottom:12px;z-index:5;
+  font-family:Georgia,'Times New Roman',serif !important;font-style:italic;font-weight:700;font-size:17px !important;
+}
+#tree-info-btn.active{background:var(--brass);color:#FBF8EF;border-color:var(--brass);}
+#tree-legend{
+  position:absolute;left:12px;bottom:56px;z-index:5;display:flex;flex-direction:column;gap:8px;align-items:flex-start;
+  background:var(--paper-card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;
+  font-size:11.5px;color:var(--slate);box-shadow:0 8px 24px rgba(30,37,48,0.16);
+  opacity:0;transform:translateY(8px);pointer-events:none;transition:opacity .2s ease,transform .2s ease;
+}
+#tree-legend.open{opacity:1;transform:translateY(0);pointer-events:auto;}
+#tree-legend .lg-title{font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--slate-dim);margin-bottom:2px;}
+#tree-legend > span{display:inline-flex;align-items:center;gap:6px;}
+#tree-zoom{position:absolute;right:12px;bottom:12px;display:flex;flex-direction:column;gap:6px;z-index:4;}
+
+/* Volet du personnage : recouvre le côté de l'arbre */
+#tree-volet{
+  position:absolute;top:0;right:0;height:100%;width:350px;max-width:100%;
+  background:var(--paper-card);border-left:1px solid var(--line);z-index:8;
+  transform:translateX(100%);visibility:hidden;
+  transition:transform .35s cubic-bezier(.2,.8,.2,1),visibility 0s linear .35s;
+  overflow-y:auto;padding:20px 22px 24px;box-shadow:-10px 0 30px rgba(30,37,48,0.1);touch-action:pan-y;
+}
+#tree-volet.open{transform:translateX(0);visibility:visible;transition-delay:0s;}
+#tree-volet-close{position:absolute;top:14px;right:14px;z-index:2;}
+#tree-volet .v-img{
+  width:100%;height:150px;border-radius:4px;overflow:hidden;margin-bottom:14px;
+  border:1px solid var(--line);background:rgba(138,106,52,0.04);
+}
+#tree-volet .v-img img{width:100%;height:100%;object-fit:cover;display:block;}
+#tree-volet .v-cats{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;padding-right:34px;}
+#tree-volet .cat-badge{display:inline-block;font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 10px;border-radius:20px;}
+#tree-volet h3{font-size:21px;margin:0 0 3px;display:flex;align-items:center;gap:9px;}
+#tree-volet .date{color:var(--brass);font-size:12.5px;margin-bottom:12px;}
+#tree-volet .v-desc{font-size:13px;line-height:1.65;margin:0 0 10px;}
+#tree-volet .v-refs{margin:0 0 6px;}
+#tree-volet .v-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+#tree-volet .v-actions button{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;font-size:12.5px;}
+#tree-volet .v-actions svg{width:14px;height:14px;flex:none;}
+#tree-volet .btn-row.end{display:flex;gap:8px;justify-content:flex-end;}
+#tree-volet .v-section{border-top:1px solid rgba(138,106,52,0.15);padding-top:12px;margin-top:14px;}
+#tree-volet .panel-label{font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--slate-dim);}
+#tree-volet .sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+#tree-volet .link-btn{background:none;border:none;color:var(--brass);font-family:inherit;font-size:11.5px;cursor:pointer;padding:2px 0;}
+#tree-volet .link-btn:hover{text-decoration:underline;}
+#tree-volet .acc-hint{font-size:11.5px;color:var(--slate-dim);line-height:1.5;}
+#tree-volet .note-box{background:rgba(138,106,52,0.06);border-left:3px solid var(--brass);border-radius:0 4px 4px 0;padding:8px 10px;}
+#tree-volet .note-box .note-view{font-size:12.5px;line-height:1.55;margin:0 0 7px;}
+#tree-volet .note-box .note-view:empty{display:none;}
+#tree-volet .note-box .bible-refs:last-child{margin:0;}
+#tree-volet .rel-row{display:grid;grid-template-columns:96px 1fr;gap:8px;padding:4px 0;align-items:start;}
+#tree-volet .rel-key{font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:var(--slate);padding-top:6px;}
+#tree-volet .rel-vals{display:flex;flex-wrap:wrap;gap:5px;}
+#tree-volet .pchip{
+  display:inline-flex;align-items:center;gap:5px;padding:4px 10px 4px 7px;border-radius:20px;
+  border:1px solid var(--line);background:none;color:var(--ink-900);font-family:inherit;font-size:12px;cursor:pointer;
+}
+#tree-volet .pchip:hover{border-color:var(--brass);color:var(--brass);}
+#tree-volet .pchip .sub{color:var(--slate-dim);font-size:10.5px;}
+#tree-volet .pchip.unknown{border-style:dashed;color:var(--slate-dim);cursor:default;}
+#tree-volet .pchip.unknown:hover{border-color:var(--line);color:var(--slate-dim);}
+#tree-volet .consang-note{
+  font-size:11.5px;color:var(--ink-700);line-height:1.55;background:rgba(138,106,52,0.07);
+  border-left:3px double var(--brass);padding:7px 10px;border-radius:0 4px 4px 0;margin:3px 0 6px;
+}
+#tree-volet .consang-note b{color:var(--brass);}
+#tree-volet .warn-note{
+  font-size:11.5px;color:#8C4038;background:rgba(140,64,56,0.08);border:1px solid rgba(140,64,56,0.3);
+  padding:8px 10px;border-radius:4px;margin-bottom:12px;line-height:1.5;
+}
+body.dark-mode #tree-volet .warn-note{color:#D9A19A;border-color:rgba(217,161,154,0.35);}
+#tree-volet .quick-add{display:flex;gap:6px;flex-wrap:wrap;}
+#tree-volet .quick-add button{
+  border:1px dashed var(--line);background:none;color:var(--slate);border-radius:20px;
+  padding:6px 11px;font-family:inherit;font-size:12px;cursor:pointer;
+}
+#tree-volet .quick-add button:hover{color:var(--brass);border-color:var(--brass);}
+#tree-volet .seg-btn{padding:7px 12px;font-size:12.5px;}
+#tree-volet .form-row{margin-bottom:12px;}
+
+/* Formulaire d'ajout : au-dessus de l'arbre, sous la fiche d'édition de l'application */
+#taf-overlay{z-index:64;}
+#taf-card .req{color:#8C4038;}
+#taf-card .taf-hint{text-transform:none;letter-spacing:0;color:var(--slate-dim);font-size:11px;}
+#taf-card .taf-or{margin-top:6px;font-size:11.5px;color:var(--slate);}
+#taf-card .taf-or input{font-size:11.5px;width:auto;max-width:100%;}
+#taf-prev{margin-top:8px;display:none;align-items:center;gap:10px;font-size:11.5px;color:var(--slate);}
+#taf-prev.show{display:flex;}
+#taf-prev img{width:54px;height:54px;object-fit:cover;border-radius:4px;border:1px solid var(--line);flex:none;}
+#taf-card .form-note{
+  font-size:11.5px;color:var(--slate);background:rgba(138,106,52,0.07);border-radius:4px;
+  padding:8px 10px;line-height:1.5;margin-bottom:14px;
+}
+#taf-error{
+  display:none;background:rgba(140,64,56,0.1);border:1px solid rgba(140,64,56,0.35);
+  color:#8C4038;font-size:12.5px;padding:9px 12px;border-radius:4px;margin-bottom:14px;
+}
+body.dark-mode #taf-error{color:#D9A19A;}
+#taf-error.show{display:block;}
+#taf-card .taf-section{
+  font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--brass);
+  margin:18px 0 10px;padding-top:12px;border-top:1px solid rgba(138,106,52,0.15);
+}
+#taf-card .taf-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 10px;}
+
+/* Fenêtre étroite (téléphone en portrait) : plein écran, le volet devient un tiroir en bas */
+#tree-overlay.tree-narrow{padding:0;}
+#tree-overlay.tree-narrow #tree-card{
+  width:100%;height:100%;border-radius:0;border:none;
+  padding:calc(14px + env(safe-area-inset-top)) 12px calc(10px + env(safe-area-inset-bottom));
+}
+#tree-overlay.tree-narrow #tree-card .modal-close{top:calc(14px + env(safe-area-inset-top));right:12px;}
+#tree-overlay.tree-narrow #tree-add{
+  top:calc(14px + env(safe-area-inset-top));right:50px;padding:0;width:30px;height:30px;justify-content:center;border-radius:50%;
+}
+#tree-overlay.tree-narrow #tree-add span{display:none;}
+#tree-overlay.tree-narrow #tree-toolbar{gap:8px;}
+#tree-overlay.tree-narrow #tree-search-wrap{flex:1 1 150px;}
+#tree-overlay.tree-narrow .tree-hint{display:none;}
+#tree-overlay.tree-narrow #tree-volet{
+  top:auto;bottom:0;height:64%;width:100%;border-left:none;border-top:1px solid var(--line);
+  border-radius:12px 12px 0 0;transform:translateY(100%);box-shadow:0 -10px 30px rgba(30,37,48,0.12);
+}
+#tree-overlay.tree-narrow #tree-volet.open{transform:translateY(0);}
+#tree-overlay.tree-narrow #tree-zoom{bottom:auto;top:10px;}
+#tree-overlay.tree-narrow #tree-info-btn{bottom:auto;top:10px;}
+#tree-overlay.tree-narrow #tree-legend{bottom:auto;top:52px;}
+@media (max-width:520px){
+  #taf-card .taf-grid{grid-template-columns:1fr;}
+}
+/* Téléphone en paysage (classe posée par arbre.js : hauteur ≤ 480 px et plus large que haut) : volet latéral plus étroit et plus compact */
+#tree-overlay.tree-short #tree-volet{width:300px;padding:14px 16px 18px;}
+#tree-overlay.tree-short #tree-volet .v-img{height:96px;margin-bottom:10px;}
+#tree-overlay.tree-short #tree-volet h3{font-size:18px;}
+#tree-overlay.tree-short #tree-volet .v-actions{margin-top:10px;}
+#tree-overlay.tree-short #tree-volet .rel-row{grid-template-columns:78px 1fr;}
+/* Téléphone en paysage : peu de hauteur */
+@media (max-height:480px){
+  #tree-card{padding:10px 14px 10px;}
+  #tree-card h2{font-size:16px;margin-bottom:6px;}
+  #tree-card .modal-close{top:10px;right:14px;}
+  #tree-add{top:10px;right:50px;padding:6px 12px;}
+  #tree-toolbar{margin-bottom:6px;gap:10px;}
+  #tree-volet{padding-top:14px;}
+  /* la barre d'action compte maintenant huit boutons : on la resserre pour qu'elle tienne en hauteur */
+  #app:not(.portrait) #action-rail{
+    padding-top:calc(8px + env(safe-area-inset-top));padding-bottom:calc(8px + env(safe-area-inset-bottom));
+  }
+  #app:not(.portrait) .rail-btn{width:38px;height:38px;}
+  #app:not(.portrait) #add-btn{width:34px;height:34px;}
+}
+@media (max-height:360px){
+  #app:not(.portrait) .rail-btn{width:34px;height:34px;}
+  #app:not(.portrait) #add-btn{width:30px;height:30px;}
+}
+/* Barre d'action en portrait sur très petit téléphone : huit boutons doivent tenir en largeur */
+@media (max-width:380px){
+  #app.portrait #action-rail{
+    padding-left:calc(6px + env(safe-area-inset-left));padding-right:calc(6px + env(safe-area-inset-right));
+  }
+  #app.portrait .rail-btn{width:34px;height:34px;}
+  #app.portrait #add-btn{width:32px;height:32px;}
 }

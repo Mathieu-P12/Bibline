@@ -11,7 +11,7 @@
 
 <p align="center">
   <a href="https://mathieu-p12.github.io/Bibline/"><img alt="Démo en ligne" src="https://img.shields.io/badge/d%C3%A9mo-en%20ligne-8A6A34?style=flat-square"></a>
-  <img alt="Version" src="https://img.shields.io/badge/version-0.9.4-B08D4C?style=flat-square">
+  <img alt="Version" src="https://img.shields.io/badge/version-0.10.0-B08D4C?style=flat-square">
   <img alt="PWA" src="https://img.shields.io/badge/PWA-hors%20ligne-3F7A72?style=flat-square">
   <img alt="Langues" src="https://img.shields.io/badge/langues-FR%20%C2%B7%20EN%20%C2%B7%20ES%20%C2%B7%20ZH-48607E?style=flat-square">
 </p>
@@ -87,6 +87,7 @@ L'idée de départ est simple : on navigue sur une carte en zoomant et en glissa
 - **Description, note personnelle, image** (fichier ou lien, avec cadrage), **source** et **lieu**
 - **Catégories personnalisables** : couleur, nom, création à la volée
 - **Listes** des personnages et de toutes les dates, avec recherche, filtre et tri
+- **Personnages reliés en famille** : un personnage est un élément de la frise ; ses liens de parenté sont conservés à part, dans l'arbre généalogique
 
 ### Recherche
 - Recherche instantanée, filtrable par catégorie
@@ -99,10 +100,18 @@ L'idée de départ est simple : on navigue sur une carte en zoomant et en glissa
 - Trois niveaux d'affichage selon le zoom : densité, pastilles par catégorie, photos avec libellés
 - **« Ajouter un événement ici »** : un clic sur la carte pré-remplit les coordonnées
 
+### Arbre généalogique
+- **Un bouton dans la barre latérale** (et un autre dans la liste des personnages) ouvre l'arbre dans une fenêtre, comme le plan
+- **Tous les personnages d'un coup d'œil** : carré = homme, rond = femme, rond en pointillés = non renseigné ; les unions entre proches parents sont tracées en double trait
+- **Toucher un personnage** met sa famille en évidence et recentre la vue ; son volet donne photo, dates, description, **note généalogique avec références bibliques** et liens de parenté cliquables
+- **« Aller voir sur la frise »** est le seul bouton qui quitte l'arbre ; dans l'autre sens, la fiche d'un personnage sur la frise propose **« Voir dans l'arbre »**
+- **Ajout depuis l'arbre** : père, mère, conjoint ou enfant d'un personnage existant, ou personnage libre ; il devient aussi un élément de la catégorie « Personnage » de la frise (date de naissance obligatoire)
+- **Contenu de départ** : 60 personnages de Térah à Moïse et leurs familles, aux dates approximatives (à vérifier), installés une seule fois ; un personnage déjà saisi sous le même nom n'est pas doublé
+
 ### Données et confort
 - **Fonctionne hors ligne** : application installable (PWA)
 - **Sauvegarde automatique** sur l'appareil à chaque modification
-- **Export / import** par catégorie, images incluses, pour sauvegarder ou partager
+- **Export / import** par catégorie, images incluses, avec les liens familiaux des personnages exportés
 - **Mode clair / sombre**
 - Interface en **français, anglais, espagnol et chinois**
 
@@ -129,8 +138,8 @@ Les données restent **sur votre appareil**. Pour les sauvegarder ou les transf�
 
 | Bouton | Effet |
 |---|---|
-| **Envoyer** | Télécharge un fichier contenant les éléments des catégories choisies et leurs images |
-| **Recevoir** | Ajoute les éléments d'un fichier à votre frise, sans écraser l'existant |
+| **Envoyer** | Télécharge un fichier contenant les éléments des catégories choisies, leurs images et, pour les personnages, leurs liens familiaux |
+| **Recevoir** | Ajoute les éléments d'un fichier à votre frise, sans écraser l'existant ; les personnages reçus sont reliés entre eux comme dans le fichier |
 
 ## Sous le capot
 
@@ -139,6 +148,7 @@ Les données restent **sur votre appareil**. Pour les sauvegarder ou les transf�
 | **Canvas 2D** | Moteur de rendu de la frise : seuls les éléments visibles sont dessinés |
 | **[Dexie.js](https://dexie.org)** | Stockage local persistant (IndexedDB) |
 | **[Leaflet](https://leafletjs.com)** + OpenStreetMap / Esri | Carte interactive |
+| **SVG** | Arbre généalogique : placement calculé, liens tracés, zoom et déplacement |
 | **Service Worker** | Cache de l'application pour le fonctionnement hors ligne |
 
 Aucun serveur, aucun compte, aucune dépendance à installer : du HTML, du CSS et du JavaScript.
@@ -147,6 +157,7 @@ Aucun serveur, aucun compte, aucune dépendance à installer : du HTML, du CSS e
 ├── index.html              Structure de la page : écrans, fenêtres, champs
 ├── styles.css              Apparence : couleurs, polices, mise en page, mode sombre
 ├── app.js                  Fonctionnement : frise, recherche, formulaires, carte, stockage
+├── arbre.js                Arbre généalogique : placement, liens, volet, ajout de personnages
 ├── bible-books.js          Les 66 livres de la Bible et leurs abréviations (FR · EN · ES)
 ├── data.json               Contenu livré avec l'application
 ├── manifest.json           Déclaration de l'application installable
@@ -157,12 +168,22 @@ Aucun serveur, aucun compte, aucune dépendance à installer : du HTML, du CSS e
 └── docs/                   Logo et captures de ce README
 ```
 
-L'ordre de chargement compte : `bible-books.js` est lu avant `app.js`, qui s'en sert.
+L'ordre de chargement compte : `bible-books.js` et `arbre.js` sont lus avant `app.js`, qui s'en sert.
+Si `arbre.js` manquait, la frise fonctionnerait quand même : seuls les boutons de l'arbre disparaîtraient.
+
+### Deux bases, un identifiant
+
+Un personnage est un **élément ordinaire de la frise** (catégorie « Personnage ») : nom, dates, photo,
+description, références. Un événement s'il est placé à sa naissance, une période naissance → décès si
+son décès est connu. Ce que la frise ne sait pas dire — sexe, note généalogique, liens père / mère /
+conjoint / enfants — est conservé à part, dans la table `meta` de la base locale (clé `genealogie`),
+et ne renvoie aux éléments que par leur identifiant. Supprimer un personnage de la frise retire donc
+ses liens de l'arbre, sans rien casser d'autre.
 
 ### Mettre une nouvelle version en ligne
 
 1. Remplacer les fichiers modifiés à la racine du dépôt
-2. **Changer `CACHE_VERSION` dans `sw.js`** (par exemple `bibline-v0.9.5`)
+2. **Changer `CACHE_VERSION` dans `sw.js`** (par exemple `bibline-v0.10.1`)
 
 Le second point est le seul vraiment indispensable : il efface l'ancien cache et force le
 téléchargement groupé de tous les fichiers. Sans lui, un appareil pourrait garder un ancien
@@ -190,7 +211,7 @@ Ce fichier a exactement le format des exports de l'application. Pour le régén�
 - [x] Export / import avec images
 - [x] Plusieurs catégories par élément
 - [x] Références bibliques ouvertes dans JW Library
-- [ ] **Arbre généalogique** des personnages, relié à la frise
+- [x] **Arbre généalogique** des personnages, relié à la frise
 - [ ] Stockage dans un dossier du disque, synchronisable via un service cloud
 - [ ] Application Android native
 
