@@ -508,7 +508,7 @@
         <div class="sr-label" id="mentions-row-label" style="margin-bottom:8px;">Mentions</div>
         <div class="settings-about">
           <a class="about-repo" id="about-repo-link" href="https://github.com/Mathieu-P12/Bibline" target="_blank" rel="noopener" title="Ouvrir le dépôt du projet sur GitHub">
-            <b>Bibline</b> — <span id="app-version-label">v0.10.0</span>
+            <b>Bibline</b> — <span id="app-version-label">v0.10.1</span>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6"/><path d="M20 4l-8.5 8.5"/><path d="M19 14.5V19a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 19V6.5A1.5 1.5 0 0 1 5 5h4.5"/></svg>
           </a><br>
           Application de gestion de connaissances historiques.<br>
@@ -594,6 +594,18 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="width:14px;height:14px;flex:none;"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
           <span data-t="overview">Vue d'ensemble</span>
         </button>
+        <!-- Filtre par catégorie (v0.10.1) : met en avant les personnages d'une ou plusieurs catégories, les autres restent visibles en retrait -->
+        <div id="tree-filter-wrap">
+          <button type="button" class="btn-secondary" id="tree-filter-btn" aria-haspopup="true" aria-expanded="false" aria-controls="tree-filter-pop">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;flex:none;"><path d="M3 5h18l-7 8.2V19l-4 2v-7.8L3 5z"/></svg>
+            <span data-t="filterBtn">Filtre</span><span id="tree-filter-count"></span>
+          </button>
+          <div id="tree-filter-pop" role="dialog">
+            <div class="tf-head"><b data-t="filterTitle">Mettre en avant une catégorie</b><button type="button" id="tree-filter-reset" class="tf-reset" data-t="filterReset">Tout afficher</button></div>
+            <div id="tree-filter-list"></div>
+            <div class="tf-hint" data-t="filterHint">Les autres personnages restent visibles, mais en retrait.</div>
+          </div>
+        </div>
         <label class="tree-ctl">
           <span class="toggle-switch"><input type="checkbox" id="tree-wide"><span class="ts-track"></span><span class="ts-thumb"></span></span>
           <span data-t="wide">Famille élargie</span> <span class="tree-hint" data-t="wideHint">(grands-parents, petits-enfants)</span>
@@ -609,6 +621,7 @@
           <g id="tree-viewport"><g id="tree-links"></g><g id="tree-nodes"></g></g>
         </svg>
         <div id="tree-empty"><b data-t="emptyTitle">Aucun personnage pour l'instant</b><span id="tree-empty-text"></span></div>
+        <div id="tree-filter-pill"><span id="tree-filter-pill-dots"></span><span id="tree-filter-pill-text"></span><button type="button" id="tree-filter-pill-x" data-tt="filterClear" title="Retirer le filtre">✕</button></div>
         <button type="button" id="tree-info-btn" class="round-btn" data-tt="legendBtn" title="Signification des symboles">i</button>
         <div id="tree-legend">
           <div class="lg-title" data-t="legendTitle">Symboles</div>

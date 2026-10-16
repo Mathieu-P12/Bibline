@@ -11,7 +11,7 @@
 
 <p align="center">
   <a href="https://mathieu-p12.github.io/Bibline/"><img alt="Démo en ligne" src="https://img.shields.io/badge/d%C3%A9mo-en%20ligne-8A6A34?style=flat-square"></a>
-  <img alt="Version" src="https://img.shields.io/badge/version-0.10.0-B08D4C?style=flat-square">
+  <img alt="Version" src="https://img.shields.io/badge/version-0.10.1-B08D4C?style=flat-square">
   <img alt="PWA" src="https://img.shields.io/badge/PWA-hors%20ligne-3F7A72?style=flat-square">
   <img alt="Langues" src="https://img.shields.io/badge/langues-FR%20%C2%B7%20EN%20%C2%B7%20ES%20%C2%B7%20ZH-48607E?style=flat-square">
 </p>
@@ -73,14 +73,14 @@ L'idée de départ est simple : on navigue sur une carte en zoomant et en glissa
 - **Zoom et déplacement fluides** à la souris, à la molette, au doigt ou par pincement, avec inertie
 - **Graduations adaptatives** : millénaires → siècles → années → mois → jours
 - **Bandes d'époques** (Néolithique, Antiquité, Moyen Âge…) et **barres de périodes** empilées sans chevauchement
-- **Vue globale simplifiée** : en fort dézoom, seules les catégories choisies restent au premier plan
+- **Vue globale simplifiée** : en fort dézoom, seules les catégories choisies restent au premier plan (au départ : les personnages principaux, pour alléger l'affichage)
 - **Vignettes illustrées** sur la frise en vue rapprochée (désactivables)
 - **Mini-carte** en bas de l'écran pour situer la portion affichée et y sauter d'un clic
 - **Mise en page double** : paysage sur grand écran, portrait sur téléphone, la fiche ouverte suivant la rotation de l'appareil
 
 ### Contenu
 - **Événements et périodes**, dates avant ou après notre ère, précises ou approximatives (« vers… »), jusqu'à l'heure près
-- **Plusieurs catégories par élément** (ex. Noé → Personnage, Déluge, Lignée de Jésus)
+- **Plusieurs catégories par élément** (ex. Moïse → Personnage, Personnage principal, Lignée lévite)
 - **Références bibliques** qui ouvrent le verset dans **JW Library**, ou sur jw.org si l'application n'est pas installée
 - **Versets reconnus dans les notes** : écrire « Gen 3:15 » au fil d'une note suffit, le passage devient cliquable
 - **Liens internet affichés en mention compacte** dans les notes, à la manière de Notion
@@ -104,9 +104,11 @@ L'idée de départ est simple : on navigue sur une carte en zoomant et en glissa
 - **Un bouton dans la barre latérale** (et un autre dans la liste des personnages) ouvre l'arbre dans une fenêtre, comme le plan
 - **Tous les personnages d'un coup d'œil** : carré = homme, rond = femme, rond en pointillés = non renseigné ; les unions entre proches parents sont tracées en double trait
 - **Toucher un personnage** met sa famille en évidence et recentre la vue ; son volet donne photo, dates, description, **note généalogique avec références bibliques** et liens de parenté cliquables
+- **Filtre par catégorie** : le bouton « Filtre » met en avant les personnages d'une ou plusieurs catégories (la lignée de Jésus, les 12 tribus…) ; les autres restent visibles, très en retrait, comme lorsqu'on touche une famille. Une pastille rappelle le filtre en cours et se retire d'un clic ; toucher une personne l'emporte sur le filtre, dont les autres membres restent à mi-intensité
 - **« Aller voir sur la frise »** est le seul bouton qui quitte l'arbre ; dans l'autre sens, la fiche d'un personnage sur la frise propose **« Voir dans l'arbre »**
 - **Ajout depuis l'arbre** : père, mère, conjoint ou enfant d'un personnage existant, ou personnage libre ; il devient aussi un élément de la catégorie « Personnage » de la frise (date de naissance obligatoire)
 - **Contenu de départ** : 60 personnages de Térah à Moïse et leurs familles, aux dates approximatives (à vérifier), installés une seule fois ; un personnage déjà saisi sous le même nom n'est pas doublé
+- **Catégories de départ** : **Personnage principal** (Abraham, Isaac, Jacob, Joseph, Moïse), **Lignée de Jésus** (de Térah à Pérez, mères comprises), **Lignée lévite** (de Lévi à Moïse, Aaron et leurs fils) et **12 Tribus** (les douze fils de Jacob). Elles s'ajoutent à la catégorie « Personnage » et se renomment, se recolorent ou se suppriment comme les autres
 
 ### Données et confort
 - **Fonctionne hors ligne** : application installable (PWA)
@@ -157,7 +159,7 @@ Aucun serveur, aucun compte, aucune dépendance à installer : du HTML, du CSS e
 ├── index.html              Structure de la page : écrans, fenêtres, champs
 ├── styles.css              Apparence : couleurs, polices, mise en page, mode sombre
 ├── app.js                  Fonctionnement : frise, recherche, formulaires, carte, stockage
-├── arbre.js                Arbre généalogique : placement, liens, volet, ajout de personnages
+├── arbre.js                Arbre généalogique : placement, liens, volet, filtre, ajout de personnages
 ├── bible-books.js          Les 66 livres de la Bible et leurs abréviations (FR · EN · ES)
 ├── data.json               Contenu livré avec l'application
 ├── manifest.json           Déclaration de l'application installable
@@ -180,10 +182,29 @@ conjoint / enfants — est conservé à part, dans la table `meta` de la base lo
 et ne renvoie aux éléments que par leur identifiant. Supprimer un personnage de la frise retire donc
 ses liens de l'arbre, sans rien casser d'autre.
 
+### Les catégories livrées avec l'arbre
+
+Elles sont déclarées dans `arbre.js` : `SEED_CATS` (nom, couleur) et `SEED_TAGS` (quels personnages du
+contenu de départ en font partie). Elles sont créées et attribuées **une seule fois par appareil**
+(l'étape atteinte est mémorisée dans `state.init`, comparée à `SEED_VERSION`) :
+
+- on ajoute seulement, jamais on ne retire ni n'écrase : une catégorie déjà créée à la main sous la même
+  clé est réutilisée telle quelle, et un personnage supprimé ou renommé n'est simplement pas reconnu ;
+- une catégorie supprimée ensuite ne revient pas, puisque l'étape n'est jamais rejouée.
+
+Pour livrer plus tard de nouvelles catégories (Prophètes, Rois…) : compléter `SEED_CATS` et `SEED_TAGS`,
+ajouter une étape dans `seedIfNeeded` (`if(state.init < 3){ … state.init = 3; }`) et passer `SEED_VERSION`
+à 3. Les appareils déjà à jour la recevront une fois, les autres enchaîneront les étapes.
+
+Le réglage « Catégories en vue globale » est posé au départ sur **Personnage** avec la condition
+**Personnage principal** (`PRINCIPAL_KEY` dans `app.js`). Un appareil dont ce réglage n'avait jamais été
+touché est migré une fois (`overviewDefaultsV`) ; un réglage personnalisé n'est jamais modifié, et une
+condition qui renvoie à une catégorie supprimée est simplement ignorée.
+
 ### Mettre une nouvelle version en ligne
 
 1. Remplacer les fichiers modifiés à la racine du dépôt
-2. **Changer `CACHE_VERSION` dans `sw.js`** (par exemple `bibline-v0.10.1`)
+2. **Changer `CACHE_VERSION` dans `sw.js`** (par exemple `bibline-v0.10.2`)
 
 Le second point est le seul vraiment indispensable : il efface l'ancien cache et force le
 téléchargement groupé de tous les fichiers. Sans lui, un appareil pourrait garder un ancien
@@ -212,6 +233,7 @@ Ce fichier a exactement le format des exports de l'application. Pour le régén�
 - [x] Plusieurs catégories par élément
 - [x] Références bibliques ouvertes dans JW Library
 - [x] **Arbre généalogique** des personnages, relié à la frise
+- [x] Catégories livrées avec l'arbre (personnages principaux, lignées, tribus) et **filtre par catégorie**
 - [ ] Stockage dans un dossier du disque, synchronisable via un service cloud
 - [ ] Application Android native
 

@@ -9,7 +9,7 @@
 /* Changer ce numéro à chaque mise en ligne : l'ancien cache est alors effacé et tous les fichiers
    ci-dessous sont retéléchargés ensemble. C'est ce qui garantit que index.html, styles.css et app.js
    restent d'une même version — avec plusieurs fichiers, c'est le point à ne pas oublier. */
-const CACHE_VERSION = 'bibline-v0.10.0';
+const CACHE_VERSION = 'bibline-v0.10.1';
 const APP_SHELL = [
   './',
   './index.html',

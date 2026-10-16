@@ -20,7 +20,7 @@
 'use strict';
 
 const PERSON_CAT = 'personnage';
-const SEED_VERSION = 1;          // version du contenu généalogique livré avec l'application
+const SEED_VERSION = 2;          // version du contenu généalogique livré (1 : personnages et familles ; 2 : + catégories)
 const SEED_TOLERANCE = 200;      // écart de dates (en années) toléré pour rapprocher un personnage déjà saisi
 
 /* ============================================================================
@@ -87,6 +87,15 @@ const TS = {
       if(m) p.push(`${m} déjà présent${m>1?'s':''}, rattaché${m>1?'s':''} à l'arbre`);
       return `Arbre généalogique : ${p.join(' ; ')}.`;
     },
+    seededCats:(cats,n)=>{
+      const c = cats.length ? `${cats.length>1?'nouvelles catégories':'nouvelle catégorie'} (${cats.join(', ')})` : '';
+      const p = n ? `${n} personnage${n>1?'s':''} classé${n>1?'s':''}` : '';
+      return `Arbre généalogique : ${[c,p].filter(Boolean).join(' ; ')}.`;
+    },
+    filterBtn:"Filtre", filterTitle:"Mettre en avant une catégorie", filterReset:"Tout afficher",
+    filterHint:"Les autres personnages restent visibles, mais en retrait.",
+    filterNone:"Aucune autre catégorie n'est attribuée aux personnages pour l'instant.",
+    filterClear:"Retirer le filtre",
   },
   en:{
     title:"Family tree", railTitle:"Family tree",
@@ -147,6 +156,15 @@ const TS = {
       if(m) p.push(`${m} already present, linked to the tree`);
       return `Family tree: ${p.join('; ')}.`;
     },
+    seededCats:(cats,n)=>{
+      const c = cats.length ? `new ${cats.length>1?'categories':'category'} (${cats.join(', ')})` : '';
+      const p = n ? `${n} ${n>1?'people':'person'} categorised` : '';
+      return `Family tree: ${[c,p].filter(Boolean).join('; ')}.`;
+    },
+    filterBtn:"Filter", filterTitle:"Highlight a category", filterReset:"Show all",
+    filterHint:"Everyone else stays visible, but faded.",
+    filterNone:"No other category is assigned to the people yet.",
+    filterClear:"Clear the filter",
   },
   es:{
     title:"Árbol genealógico", railTitle:"Árbol genealógico",
@@ -207,6 +225,15 @@ const TS = {
       if(m) p.push(`${m} ya presente${m>1?'s':''}, vinculado${m>1?'s':''} al árbol`);
       return `Árbol genealógico: ${p.join('; ')}.`;
     },
+    seededCats:(cats,n)=>{
+      const c = cats.length ? `${cats.length>1?'nuevas categorías':'nueva categoría'} (${cats.join(', ')})` : '';
+      const p = n ? `${n} personaje${n>1?'s':''} clasificado${n>1?'s':''}` : '';
+      return `Árbol genealógico: ${[c,p].filter(Boolean).join('; ')}.`;
+    },
+    filterBtn:"Filtro", filterTitle:"Resaltar una categoría", filterReset:"Mostrar todo",
+    filterHint:"Los demás personajes siguen visibles, pero atenuados.",
+    filterNone:"Por ahora ningún personaje tiene otra categoría.",
+    filterClear:"Quitar el filtro",
   },
   zh:{
     title:"家谱", railTitle:"家谱",
@@ -267,6 +294,15 @@ const TS = {
       if(m) p.push(`${m} 位已存在的人物已并入家谱`);
       return `家谱：${p.join('；')}。`;
     },
+    seededCats:(cats,n)=>{
+      const c = cats.length ? `新增分类（${cats.join('、')}）` : '';
+      const p = n ? `已为 ${n} 位人物分类` : '';
+      return `家谱：${[c,p].filter(Boolean).join('；')}。`;
+    },
+    filterBtn:"筛选", filterTitle:"突出显示某个分类", filterReset:"全部显示",
+    filterHint:"其他人物仍然可见，但会淡化。",
+    filterNone:"目前人物尚未归入其他分类。",
+    filterClear:"取消筛选",
   },
 };
 let LANG = 'fr';
@@ -407,6 +443,30 @@ const SEED_FAMILIES = [
   {id:'f_aaron', partenaires:['aaron','elisheba'], enfants:['nadab','abihou','eleazar','itamar']},
   {id:'f_moise', partenaires:['moise','sephora'], enfants:['guershom','eliezer']},
 ];
+
+/* Catégories livrées avec l'arbre (version 2 du contenu, v0.10.1)
+   Créées une seule fois par appareil, si leur clé n'existe pas encore. Les clés sont celles que l'application
+   fabriquerait elle-même à partir du nom (« Lignée de Jésus » → lignee_de_jesus) : une catégorie du même nom
+   créée à la main est donc reconnue et réutilisée au lieu d'être doublée.
+   « Personnage » reste toujours la première catégorie d'un personnage : c'est elle qui donne sa couleur sur la frise. */
+const SEED_CATS = [
+  {id:'principal', key:'personnage_principal', label:'Personnage principal', color:'#A9761C'},
+  {id:'jesus',     key:'lignee_de_jesus',      label:'Lignée de Jésus',      color:'#7A64B5'},
+  {id:'levi',      key:'lignee_levite',        label:'Lignée Lévite',        color:'#B8662F'},
+  {id:'tribus',    key:'12_tribus',            label:'12 Tribus',            color:'#3A7CA5'},
+];
+/* Qui reçoit quelle catégorie (clés de SEED_PERSONS).
+   • principal : les figures centrales de Genèse–Exode, pour alléger la vue globale de la frise.
+   • jesus     : les ancêtres de Jésus dans cet intervalle (Mt 1:2-3 ; Lc 3:33-34), mères comprises :
+                 Sara, Rébecca, Léa et Tamar sont ses aïeules directes, ce qui garde la lignée continue dans l'arbre.
+   • levi      : Lévi et ses descendants par le sang. Élishéba (de Juda) et Séphora (Madianite) n'en font pas partie.
+   • tribus    : les douze fils de Jacob. Éphraïm et Manassé, qui ont donné deux tribus à la place de Joseph, n'y sont pas. */
+const SEED_TAGS = {
+  principal: ['abraham','isaac','jacob','joseph','moise'],
+  jesus:     ['terah','abraham','sara','isaac','rebecca','jacob','lea','juda','tamar','perez'],
+  levi:      ['levi','guershon','kehath','merari','jokebed','amram','miriam','aaron','moise','nadab','abihou','eleazar','itamar','guershom','eliezer'],
+  tribus:    ['ruben','simeon','levi','juda','issacar','zabulon','joseph','benjamin','dan','nephtali','gad','aser'],
+};
 
 /* ============================================================================
    3. ÉTAT GÉNÉALOGIQUE, INDEX ET OUTILS
@@ -568,35 +628,37 @@ function kinship(a, b, K=3){
 /* ============================================================================
    4. INSTALLATION DU CONTENU LIVRÉ, EXPORT ET IMPORT
 ============================================================================ */
-// Installe une seule fois les personnages de départ et leurs liens. Renvoie null si rien à faire,
-// sinon {added, matched} (personnages créés / personnages déjà présents rattachés à l'arbre).
-function seedIfNeeded(){
-  if(locked || state.init >= SEED_VERSION) return null;
-  // Une généalogie déjà présente (fichier de départ, import) : on la respecte, on ne la double pas
-  if(Object.keys(state.fiches).length || state.familles.length){ state.init = SEED_VERSION; return {added:0, matched:0}; }
-  const people = api.getItems().filter(api.isPerson);
+// Rapproche les personnages du semis d'éléments déjà présents (même nom ou graphie voisine, date à ±SEED_TOLERANCE ans).
+// Renvoie {clé du semis → identifiant de l'élément} pour ceux qui ont été reconnus.
+function matchSeedPersons(candidates){
   const byName = new Map();
   const addName = (n, it) => {
     const k = norm(n).trim(); if(!k) return;
     if(!byName.has(k)) byName.set(k, []);
     byName.get(k).push(it);
   };
-  people.forEach(it=>{ addName(it.t, it); addName(String(it.t).split(',')[0], it); });
+  candidates.forEach(it=>{ addName(it.t, it); addName(String(it.t).split(',')[0], it); });
   const used = new Set(), idOf = {};
-  let added = 0, matched = 0;
-  SEED_PERSONS.forEach(([key, name, birth, death, x])=>{
-    let found = null;
+  SEED_PERSONS.forEach(([key, name, birth])=>{
     for(const n of [name].concat(SEED_ALIASES[key] || [])){
-      found = (byName.get(norm(n)) || []).find(it=>!used.has(it.id) && Math.abs(sortYear(it)-birth) <= SEED_TOLERANCE);
-      if(found) break;
+      const found = (byName.get(norm(n)) || []).find(it=>!used.has(it.id) && Math.abs(sortYear(it)-birth) <= SEED_TOLERANCE);
+      if(found){ idOf[key] = found.id; used.add(found.id); return; }
     }
-    if(found){ idOf[key] = found.id; matched++; }
-    else {
-      found = api.addPerson({t:name, birth, death, approx:true, d:x.d || '', bibleRefs:x.refs || null,
-        img:x.img || null, imgPosition:x.imgPosition || null});
-      idOf[key] = found.id; added++;
-    }
-    used.add(found.id);
+  });
+  return idOf;
+}
+
+// Étape 1 (v0.10.0) : les personnages de départ et leurs liens. Un personnage déjà saisi de même nom et de date voisine
+// est rattaché à l'arbre au lieu d'être recréé.
+function installSeed(res){
+  // Une généalogie déjà présente (fichier de départ, import) : on la respecte, on ne la double pas
+  if(Object.keys(state.fiches).length || state.familles.length) return;
+  const idOf = matchSeedPersons(api.getItems().filter(api.isPerson));
+  SEED_PERSONS.forEach(([key, name, birth, death, x])=>{
+    if(idOf[key]){ res.matched++; return; }
+    idOf[key] = api.addPerson({t:name, birth, death, approx:true, d:x.d || '', bibleRefs:x.refs || null,
+      img:x.img || null, imgPosition:x.imgPosition || null}).id;
+    res.added++;
   });
   SEED_PERSONS.forEach(([key])=>{
     const f = {sexe: SEED_WOMEN.includes(key) ? 'F' : 'M'};
@@ -608,12 +670,49 @@ function seedIfNeeded(){
     if(sf.jumeaux) nf.jumeaux = sf.jumeaux.map(g=>({membres:g.membres.map(k=>idOf[k]), type:g.type}));
     state.familles.push(nf);
   });
-  state.init = SEED_VERSION;
+}
+
+// Étape 2 (v0.10.1) : crée les catégories livrées, puis les attribue aux personnages du semis présents dans l'arbre.
+// On ajoute seulement : jamais une catégorie n'est retirée, et comme l'étape n'a lieu qu'une fois par appareil,
+// une catégorie retirée ensuite à la main ne revient pas. Un personnage renommé ou supprimé n'est simplement pas reconnu.
+function tagSeed(res){
+  const keyOf = {};
+  SEED_CATS.forEach(c=>{
+    const r = api.ensureCategory({key:c.key, label:c.label, color:c.color});
+    if(!r) return;
+    keyOf[c.id] = r.key;
+    if(r.created) res.cats.push(c.label);
+  });
+  const cand = api.getItems().filter(it=>api.isPerson(it) && state.fiches[it.id]);
+  const idOf = matchSeedPersons(cand), item = new Map(cand.map(it=>[it.id, it]));
+  const want = {};   // identifiant d'élément → clés de catégories à ajouter
+  Object.keys(SEED_TAGS).forEach(cid=>{
+    if(!keyOf[cid]) return;
+    SEED_TAGS[cid].forEach(k=>{ if(idOf[k]) (want[idOf[k]] || (want[idOf[k]] = [])).push(keyOf[cid]); });
+  });
+  Object.keys(want).forEach(id=>{ if(api.addCategories(item.get(id), want[id]) > 0) res.tagged++; });
+}
+
+// Installe ce qui manque du contenu livré, une seule fois par étape et par appareil (state.init mémorise l'étape atteinte).
+// Renvoie null si rien à faire, sinon {added, matched, tagged, cats} : personnages créés, personnages déjà présents
+// rattachés, personnages ayant reçu au moins une catégorie, noms des catégories créées.
+function seedIfNeeded(){
+  if(locked || state.init >= SEED_VERSION) return null;
+  const from = state.init, res = {added:0, matched:0, tagged:0, cats:[]};
+  if(state.init < 1){ installSeed(res); state.init = 1; }
+  // application plus ancienne que ce fichier (mise à jour en cours) : l'étape 2 attendra le prochain lancement
+  if(state.init < 2 && typeof api.ensureCategory === 'function' && typeof api.addCategories === 'function'){
+    tagSeed(res);
+    state.init = 2;
+  }
   dirtyIdx();
-  return {added, matched};
+  return state.init > from ? res : null;
 }
 function seedMessage(res){
-  return (res && (res.added || res.matched)) ? t('seeded', res.added, res.matched, catName()) : null;
+  if(!res) return null;
+  if(res.added || res.matched) return t('seeded', res.added, res.matched, catName());
+  if(res.cats.length || res.tagged) return t('seededCats', res.cats, res.tagged);
+  return null;
 }
 
 // Export : les liens des seuls personnages exportés (ids = ensemble d'identifiants d'éléments)
@@ -974,7 +1073,8 @@ const VOLET_W_SHORT = 300;       // idem sur un téléphone en paysage (CSS : .t
 const NARROW_W = 760;            // en dessous, la fenêtre passe en « étroit » : le volet devient un tiroir en bas
 const SHORT_H = 480;             // en dessous (et plus large que haut), on est sur un téléphone en paysage : le volet reste sur le côté
 const $ = id => document.getElementById(id);
-const tstate = {selected:null, wide:false};
+const tstate = {selected:null, wide:false, cats:new Set()};   // cats : catégories choisies dans le filtre (en mémoire, le temps de la session)
+let FSET = null;                 // identifiants des personnes que le filtre met en avant (null = pas de filtre)
 const cam = {x:0, y:0, k:1};
 let D = null;                    // éléments de la page, pris une fois dans init()
 let inited = false, OPEN = false;
@@ -996,9 +1096,14 @@ function grab(){
     search:$('tree-search'), searchRes:$('tree-search-res'), wide:$('tree-wide'),
     legend:$('tree-legend'), info:$('tree-info-btn'), closeBtn:$('tree-close'), addBtn:$('tree-add'),
     overview:$('tree-overview'), zin:$('tree-zin'), zout:$('tree-zout'), zfit:$('tree-zfit'),
-    af
+    af, flt:null
   };
-  return Object.keys(D).every(k=>k==='af' || D[k]) && Object.keys(af).every(k=>af[k]);
+  // Le filtre est facultatif : une page plus ancienne (en cache) sans ses éléments garde un arbre qui fonctionne
+  const flt = {wrap:$('tree-filter-wrap'), btn:$('tree-filter-btn'), count:$('tree-filter-count'), pop:$('tree-filter-pop'),
+    list:$('tree-filter-list'), reset:$('tree-filter-reset'), pill:$('tree-filter-pill'), pillDots:$('tree-filter-pill-dots'),
+    pillText:$('tree-filter-pill-text'), pillX:$('tree-filter-pill-x')};
+  if(Object.keys(flt).every(k=>flt[k])) D.flt = flt;
+  return Object.keys(D).every(k=>k==='af' || k==='flt' || D[k]) && Object.keys(af).every(k=>af[k]);
 }
 
 /* ---------- Dessin ---------- */
@@ -1041,21 +1146,112 @@ function familySet(pid){
   }
   return S;
 }
+/* ---------- Filtre par catégorie ----------
+   Choisir une ou plusieurs catégories met en avant leurs personnages (ceux qui portent l'une ou l'autre) ; les autres
+   restent dessinés mais très estompés, exactement comme quand on choisit une famille. Quand une personne est choisie,
+   sa famille l'emporte, et les personnages du filtre qui n'en font pas partie restent à mi-intensité (classe « flt »). */
+// Catégories proposées : celles que portent les personnages de l'arbre (hors « Personnage », que tous portent),
+// dans l'ordre où l'application les présente ; n = nombre de personnages concernés
+// (une application plus ancienne que ce fichier ne fournit pas la liste des catégories : le filtre n'a alors rien à proposer)
+const allCats = () => typeof api.categories === 'function' ? api.categories() : [];
+function filterChoices(){
+  ensureIndex();
+  const count = Object.create(null);
+  PEOPLE.forEach(p=>api.catsOf(p).forEach(c=>{ count[c.key] = (count[c.key] || 0)+1; }));
+  return allCats().filter(c=>c.key!==PERSON_CAT && !c.locked && count[c.key]).map(c=>Object.assign({n:count[c.key]}, c));
+}
+// Personnes mises en avant par le filtre, ou null s'il n'y a pas de filtre. Une catégorie choisie que plus personne
+// ne porte (supprimée, retirée à la main) est oubliée au passage.
+function computeFilter(){
+  if(!tstate.cats.size) return null;
+  ensureIndex();
+  const S = new Set(), live = new Set();
+  PEOPLE.forEach(p=>{
+    const ks = api.catsOf(p).map(c=>c.key).filter(k=>tstate.cats.has(k));
+    if(ks.length){ S.add(p.id); ks.forEach(k=>live.add(k)); }
+  });
+  [...tstate.cats].forEach(k=>{ if(!live.has(k)) tstate.cats.delete(k); });
+  return tstate.cats.size ? S : null;
+}
+function renderFilterList(){
+  const f = D.flt; if(!f) return;
+  const ch = filterChoices();
+  f.list.innerHTML = ch.length
+    ? ch.map(c=>`<button type="button" class="tf-chip${tstate.cats.has(c.key) ? ' on' : ''}" data-k="${esc(c.key)}" aria-pressed="${tstate.cats.has(c.key)}">`
+        + `<span class="dot" style="background:${esc(c.color)}"></span><span class="tf-name">${esc(c.label)}</span><span class="tf-n">${c.n}</span></button>`).join('')
+    : `<div class="tf-none">${esc(t('filterNone'))}</div>`;
+  f.reset.disabled = !tstate.cats.size;
+}
+// Bouton « Filtre » (actif + nombre de catégories), pastille rappelant le filtre en cours, liste ouverte
+function syncFilterUI(F){
+  const f = D.flt; if(!f) return;
+  const n = tstate.cats.size, on = n>0 && !!F;
+  f.btn.classList.toggle('active', n>0);
+  f.count.textContent = n ? `(${n})` : '';
+  f.pill.classList.toggle('show', on);
+  if(on){
+    const cats = allCats().filter(c=>tstate.cats.has(c.key));
+    f.pillDots.innerHTML = cats.map(c=>`<span class="dot" style="background:${esc(c.color)}"></span>`).join('');
+    const txt = cats.map(c=>c.label).join(' + ')+' · '+F.size;
+    f.pillText.textContent = txt; f.pill.title = txt;
+  }
+  if(f.pop.classList.contains('open')) renderFilterList();
+}
+function toggleFilterPop(open){
+  const f = D.flt; if(!f) return;
+  const o = open===undefined ? !f.pop.classList.contains('open') : open;
+  if(o){ toggleLegend(false); D.searchRes.classList.remove('show'); renderFilterList(); }
+  f.pop.classList.toggle('open', o);
+  f.btn.setAttribute('aria-expanded', String(o));
+  if(o) positionFilterPop();
+}
+// La liste s'ouvre sous le bouton sans jamais dépasser de la fenêtre (téléphone : le bouton peut être à droite)
+function positionFilterPop(){
+  const f = D.flt, card = D.card.getBoundingClientRect(), wrap = f.wrap.getBoundingClientRect();
+  f.pop.style.left = '0px';
+  const w = f.pop.offsetWidth;
+  const left = Math.max(card.left+8, Math.min(wrap.left, card.right-8-w));
+  f.pop.style.left = (left-wrap.left)+'px';
+}
+// Un changement de filtre ferme la fiche ouverte (sinon la famille choisie l'emporterait et le filtre ne se verrait pas),
+// puis la vue se cadre sur les personnes mises en avant
+function afterFilterChange(){
+  clearSelection();
+  if(FSET) fitFilter(true);
+}
+function toggleFilterCat(key){
+  if(tstate.cats.has(key)) tstate.cats.delete(key); else tstate.cats.add(key);
+  afterFilterChange();
+}
+function clearFilter(){
+  tstate.cats.clear();
+  afterFilterChange();
+}
+function fitFilter(anim){
+  if(!LAYOUT || !FSET) return;
+  fitBox([...FSET].map(id=>LAYOUT.nodes[id]).filter(Boolean), anim);
+}
+
 function applyHighlight(){
   let sel = tstate.selected;
   if(sel && !(LAYOUT && LAYOUT.nodes[sel])){ sel = tstate.selected = null; D.volet.classList.remove('open'); }
-  const S = sel ? familySet(sel) : null;
-  D.svg.classList.toggle('focus-mode', !!sel);
+  const F = FSET = computeFilter();
+  const S = sel ? familySet(sel) : F;                 // la famille d'une personne choisie l'emporte sur le filtre
+  D.svg.classList.toggle('focus-mode', !!S);
   D.gNodes.querySelectorAll('.node').forEach(el=>{
-    el.classList.toggle('fam', !!S && S.has(el.dataset.pid));
-    el.classList.toggle('sel', el.dataset.pid===sel);
+    const id = el.dataset.pid;
+    el.classList.toggle('fam', !!S && S.has(id));
+    el.classList.toggle('sel', id===sel);
+    el.classList.toggle('flt', !!F && F.has(id));
   });
   D.gLinks.querySelectorAll('.lnk').forEach(el=>{
     const l = LINKS[+el.dataset.i];
     el.classList.toggle('fam', !!S && !!l && l.ids.every(i=>S.has(i)));
+    el.classList.toggle('flt', !!F && !!l && l.ids.every(i=>F.has(i)));
   });
-  // la famille passe au premier plan
+  // la famille (ou les personnes du filtre) passe au premier plan
   if(S) D.gNodes.querySelectorAll('.node.fam').forEach(el=>D.gNodes.appendChild(el));
+  syncFilterUI(F);
 }
 
 /* ---------- Caméra : déplacement, zoom molette / pincement, inertie ---------- */
@@ -1207,7 +1403,7 @@ function openTree(pid){
   requestAnimationFrame(()=>{
     if(!OPEN) return;
     if(want && LAYOUT.nodes[want]) selectPerson(want);
-    else { clearSelection(); fitTree(false, false); }
+    else { clearSelection(); if(FSET) fitFilter(false); else fitTree(false, false); }   // un filtre resté actif : on rouvre sur ses personnes
   });
   markSeen();
 }
@@ -1219,6 +1415,7 @@ function closeTree(){
   D.af.overlay.classList.remove('open');
   D.searchRes.classList.remove('show');
   toggleLegend(false);
+  toggleFilterPop(false);
 }
 function toggleLegend(open){
   const o = open===undefined ? !D.legend.classList.contains('open') : open;
@@ -1408,6 +1605,16 @@ function wireUI(){
     if(tstate.selected) zoomToFamily(tstate.selected, true);
   });
   D.info.addEventListener('click', e=>{ e.stopPropagation(); toggleLegend(); });
+  // filtre par catégorie (facultatif : absent d'une page plus ancienne)
+  if(D.flt){
+    D.flt.btn.addEventListener('click', e=>{ e.stopPropagation(); toggleFilterPop(); });
+    D.flt.list.addEventListener('click', e=>{ const c = e.target.closest('.tf-chip'); if(c) toggleFilterCat(c.dataset.k); });
+    D.flt.reset.addEventListener('click', clearFilter);
+    D.flt.pillX.addEventListener('click', clearFilter);
+    document.addEventListener('pointerdown', e=>{
+      if(OPEN && !e.target.closest('#tree-filter-wrap')) toggleFilterPop(false);
+    });
+  }
   // recherche
   D.search.addEventListener('input', runSearch);
   D.search.addEventListener('focus', runSearch);
@@ -1430,6 +1637,7 @@ function wireUI(){
     if(D.af.overlay.classList.contains('open')){ closeAddForm(); return; }
     if(api.editOpen && api.editOpen()) return;               // la fiche de l'application est ouverte par-dessus : elle garde la main
     if(D.searchRes.classList.contains('show')){ D.searchRes.classList.remove('show'); return; }
+    if(D.flt && D.flt.pop.classList.contains('open')){ toggleFilterPop(false); return; }
     if(D.legend.classList.contains('open')){ toggleLegend(false); return; }
     if(tstate.selected){ clearSelection(); return; }
     closeTree();

@@ -1,6 +1,6 @@
 (function(){
 
-const APP_VERSION = 'v0.10.0';
+const APP_VERSION = 'v0.10.1';
 
 /* ---------- Arbre généalogique (v0.10) ----------
    Tout le code de l'arbre est dans arbre.js, chargé avant ce fichier. Si arbre.js manquait ou plantait,
@@ -524,12 +524,25 @@ let overviewCats = new Set(['personnage']);
 /* Condition supplémentaire (v0.9.5) : catégories qui ne s'affichent pas d'elles-mêmes mais
    restreignent celles ci-dessus. « Personnage » au-dessus et « Religion » ici : seuls les éléments
    qui portent les deux restent au premier plan en vue très dézoomée. Plusieurs catégories ici
-   élargissent la condition (il suffit d'en porter une), sinon la frise se viderait d'un coup. */
-let overviewRequiredCats = new Set();
+   élargissent la condition (il suffit d'en porter une), sinon la frise se viderait d'un coup.
+   Réglage par défaut depuis la v0.10.1 : « Personnage » restreint à « Personnage principal »,
+   pour alléger l'affichage au démarrage (la catégorie est créée par l'arbre, voir arbre.js). */
+const PRINCIPAL_KEY = 'personnage_principal';
+let overviewRequiredCats = new Set([PRINCIPAL_KEY]);
+// Une condition qui renvoie à une catégorie absente (supprimée, ou pas encore créée) est ignorée : elle ne doit jamais tout estomper
+function meetsOverviewCondition(it){
+  let valid = false;
+  for(const key of overviewRequiredCats){
+    if(!CATS[key]) continue;
+    valid = true;
+    if(itemHasCat(it, key)) return true;
+  }
+  return !valid;
+}
 function isItemEmphasized(it){
   if(overviewFilterEnabled && (viewEnd-viewStart) > OVERVIEW_THRESHOLD_YEARS){
     if(!itemInCats(it, overviewCats)) return false;
-    if(overviewRequiredCats.size && !itemInCats(it, overviewRequiredCats)) return false;
+    if(!meetsOverviewCondition(it)) return false;
   }
   return true;
 }
@@ -1184,6 +1197,8 @@ function openCatDeleteChoice(key, label){
   catPendingDeleteKey = key;
   document.getElementById('catdelete-label').textContent = label;
   catDeleteOverlay.classList.add('open');
+  // « Gérer les catégories » ouvert depuis la fiche d'édition passe au premier plan : sans cela, ce choix restait caché derrière
+  bringToFront(catDeleteOverlay);
 }
 document.getElementById('catdelete-reassign').addEventListener('click', ()=>{
   if(catPendingDeleteKey) deleteCategory(catPendingDeleteKey, 'reassign');
@@ -1604,7 +1619,8 @@ function saveSettings(){
     localStorage.setItem(SETTINGS_KEY, JSON.stringify({
       lang: currentLang, dark: isDarkMode, timelineImages: timelineShowImages, bibleTarget,
       overviewEnabled: overviewFilterEnabled,
-      overviewCats: [...overviewCats], overviewRequiredCats: [...overviewRequiredCats]
+      overviewCats: [...overviewCats], overviewRequiredCats: [...overviewRequiredCats],
+      overviewDefaultsV: 2
     }));
   }catch(err){ /* stockage indisponible (navigation privée…) : les réglages restent valables pour la session */ }
 }
@@ -1616,7 +1632,15 @@ function loadSettings(){
   if(st.bibleTarget==='web' || st.bibleTarget==='app'){ bibleTarget = st.bibleTarget; bibleTargetSelect.value = st.bibleTarget; }
   // Vue globale : ces choix décident de ce qui s'affiche au démarrage, ils doivent survivre à la fermeture
   if(Array.isArray(st.overviewCats)) overviewCats = new Set(st.overviewCats);
-  if(Array.isArray(st.overviewRequiredCats)) overviewRequiredCats = new Set(st.overviewRequiredCats);
+  // Réglages enregistrés avant la condition supplémentaire : il n'y en avait pas
+  overviewRequiredCats = new Set(Array.isArray(st.overviewRequiredCats) ? st.overviewRequiredCats : []);
+  /* v0.10.1 : le défaut de la vue globale devient « Personnage » + condition « Personnage principal ».
+     Sur un appareil qui avait déjà enregistré ses réglages, on ne change que ce qui n'a jamais été personnalisé
+     (seule « Personnage » concernée, aucune condition) ; un choix déjà fait reste tel quel. Une fois les réglages
+     réenregistrés (repère overviewDefaultsV), une condition retirée à la main n'est plus jamais remise. */
+  if(!(st.overviewDefaultsV >= 2) && overviewCats.size===1 && overviewCats.has('personnage') && overviewRequiredCats.size===0){
+    overviewRequiredCats = new Set([PRINCIPAL_KEY]);
+  }
   if(typeof st.overviewEnabled==='boolean'){
     overviewFilterEnabled = st.overviewEnabled;
     overviewToggle.checked = st.overviewEnabled;
@@ -3497,6 +3521,25 @@ const treeApi = {
   requestSave: ()=> schedulePersist(),
   catLabel: (key)=> catOf(key).label,
   catsOf: (it)=> itemCats(it).map(k=>({key:k, label:catOf(k).label, color:catOf(k).color})),
+  // Toutes les catégories, dans l'ordre où l'application les présente (pour le filtre de l'arbre)
+  categories: ()=> Object.entries(CATS).map(([key,c])=>({key, label:c.label, color:c.color, locked:!!c.locked})),
+  /* v0.10.1 : catégories livrées avec l'arbre. Créée seulement si la clé n'existe pas : une catégorie de même clé
+     (créée à la main, renommée, recolorée) est respectée telle quelle. Rien n'est redessiné ni enregistré ici :
+     l'appelant (installation de l'arbre) est suivi d'un rafraîchissement général et d'un enregistrement. */
+  ensureCategory(def){
+    if(!def || !def.key) return null;
+    const created = !CATS[def.key];
+    if(created) CATS[def.key] = {label:def.label, color:def.color};
+    return {key:def.key, created};
+  },
+  // Ajoute des catégories à un élément (jamais d'en retirer) ; la catégorie principale — donc la couleur sur la frise — ne change pas
+  addCategories(it, keys){
+    const have = itemCats(it).slice();
+    let n = 0;
+    (keys||[]).forEach(k=>{ if(CATS[k] && !have.includes(k)){ have.push(k); n++; } });
+    if(n){ it.cats = have; normalizeItemCats(it); }
+    return n;
+  },
   dateLabel: dateLabelFor,
   renderNote,
   renderBibleRefs,

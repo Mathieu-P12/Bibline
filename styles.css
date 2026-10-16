@@ -794,6 +794,50 @@ body.dark-mode .lang-select{background-color:var(--paper-panel);}
 #tree-toolbar .toggle-switch .ts-thumb{width:16px;height:16px;}
 #tree-toolbar .toggle-switch input:checked ~ .ts-thumb{transform:translateX(16px);}
 
+/* Filtre par catégorie (v0.10.1) : bouton, liste déroulante et pastille « filtre actif » */
+#tree-filter-wrap{position:relative;}
+#tree-filter-btn.active{color:var(--brass);border-color:var(--brass);background:rgba(138,106,52,0.1);}
+#tree-filter-count{font-weight:600;color:var(--brass);}
+#tree-filter-pop{
+  position:absolute;top:calc(100% + 6px);left:0;z-index:14;display:none;box-sizing:border-box;
+  width:max-content;max-width:min(340px,92vw);
+  background:var(--paper-card);border:1px solid var(--line);border-radius:10px;
+  padding:12px;box-shadow:0 8px 24px rgba(30,37,48,0.16);
+}
+#tree-filter-pop.open{display:block;}
+#tree-filter-pop .tf-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:10px;}
+#tree-filter-pop .tf-head b{font-size:12px;font-weight:600;color:var(--ink-700);}
+#tree-filter-pop .tf-reset{background:none;border:none;padding:2px 0;font-family:inherit;font-size:11.5px;color:var(--brass);cursor:pointer;white-space:nowrap;}
+#tree-filter-pop .tf-reset:hover:not(:disabled){text-decoration:underline;}
+#tree-filter-pop .tf-reset:disabled{opacity:.4;cursor:default;}
+#tree-filter-list{display:flex;flex-wrap:wrap;gap:6px;}
+#tree-filter-pop .tf-chip{
+  display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border-radius:20px;cursor:pointer;
+  border:1px solid var(--line);background:none;color:var(--slate);font-family:inherit;font-size:12px;
+  transition:background .15s ease,border-color .15s ease;
+}
+#tree-filter-pop .tf-chip:hover{border-color:var(--brass);}
+#tree-filter-pop .tf-chip.on{color:var(--ink-900);border-color:var(--brass);background:rgba(138,106,52,0.14);}
+#tree-filter-pop .tf-chip .dot,#tree-filter-pill .dot{width:8px;height:8px;border-radius:50%;flex:none;}
+#tree-filter-pop .tf-n{font-size:10.5px;color:var(--slate-dim);}
+#tree-filter-pop .tf-none{font-size:12px;color:var(--slate-dim);line-height:1.5;max-width:260px;}
+#tree-filter-pop .tf-hint{margin-top:10px;font-size:11px;color:var(--slate-dim);line-height:1.5;}
+#tree-filter-pill{
+  position:absolute;left:12px;top:12px;z-index:6;display:none;align-items:center;gap:8px;box-sizing:border-box;
+  max-width:calc(100% - 70px);padding:4px 5px 4px 12px;border-radius:20px;
+  background:var(--paper-panel);border:1px solid var(--brass);color:var(--ink-900);
+  font-size:12px;box-shadow:0 4px 12px rgba(30,37,48,0.12);
+}
+#tree-filter-pill.show{display:flex;}
+#tree-filter-pill-dots{display:inline-flex;gap:3px;flex:none;}
+#tree-filter-pill-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
+#tree-filter-pill-x{
+  width:22px;height:22px;flex:none;padding:0;border:none;border-radius:50%;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-family:inherit;font-size:10px;line-height:1;
+  background:rgba(138,106,52,0.14);color:var(--slate);
+}
+#tree-filter-pill-x:hover{background:var(--brass);color:#FBF8EF;}
+
 #tree-area{
   position:relative;flex:1;min-height:0;border:1px solid var(--line);border-radius:6px;
   overflow:hidden;background:var(--paper);
@@ -838,6 +882,11 @@ body.dark-mode .lang-select{background-color:var(--paper-panel);}
 #tree.focus-mode .lnk.fam .lk{opacity:1;stroke-width:1.6;}
 #tree.focus-mode .lnk.fam .lk-union{stroke-width:2.6;}
 #tree.focus-mode .lnk.fam .lk-dbl-o{opacity:1;}
+/* Filtre par catégorie : quand une famille est choisie en plus, les personnes du filtre qui n'en font pas partie restent à mi-intensité */
+#tree.focus-mode .node.flt:not(.fam){opacity:.5;}
+#tree.focus-mode .lnk.flt:not(.fam) .lk,#tree.focus-mode .lnk.flt:not(.fam) .lk-dbl-o{opacity:.5;}
+#tree.focus-mode .lnk.flt:not(.fam) .lk-dbl-i{opacity:.7;}
+#tree.focus-mode .lnk.flt:not(.fam) .knot{opacity:.5;}
 /* Niveau de détail selon le zoom */
 #tree.lod1 .yrs{display:none;}
 #tree.lod2 .node:not(.fam) .lbl{display:none;}
@@ -985,6 +1034,7 @@ body.dark-mode #taf-error{color:#D9A19A;}
 #tree-overlay.tree-narrow #tree-zoom{bottom:auto;top:10px;}
 #tree-overlay.tree-narrow #tree-info-btn{bottom:auto;top:10px;}
 #tree-overlay.tree-narrow #tree-legend{bottom:auto;top:52px;}
+#tree-overlay.tree-narrow #tree-filter-pill{left:54px;top:12px;max-width:calc(100% - 112px);}
 @media (max-width:520px){
   #taf-card .taf-grid{grid-template-columns:1fr;}
 }
@@ -999,7 +1049,7 @@ body.dark-mode #taf-error{color:#D9A19A;}
   #tree-card{padding:10px 14px 10px;}
   #tree-card h2{font-size:16px;margin-bottom:6px;}
   #tree-card .modal-close{top:10px;right:14px;}
-  #tree-add{top:10px;right:50px;padding:6px 12px;}
+  #tree-add{top:10px;right:50px;padding:4px 12px;}   /* un peu plus bas de plafond : ne mord plus sur la barre d'outils (Filtre, Vue d'ensemble) en 667 px de large */
   #tree-toolbar{margin-bottom:6px;gap:10px;}
   #tree-volet{padding-top:14px;}
   /* la barre d'action compte maintenant huit boutons : on la resserre pour qu'elle tienne en hauteur */
