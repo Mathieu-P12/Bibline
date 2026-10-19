@@ -1092,8 +1092,10 @@ body.dark-mode #edition-overlay{
   --ed-shadow:0 1px 2px rgba(0,0,0,0.4),0 14px 30px -16px rgba(0,0,0,0.7);
 }
 #edition-overlay [hidden]{display:none !important;}
+/* La fenêtre prend toute la place que lui laisse le bord de l'écran (comme sur tablette), sans plafond de taille :
+   plus elle est grande, plus l'aperçu est lisible. */
 #edition-card{
-  width:100%;max-width:1320px;height:100%;max-height:940px;
+  width:100%;height:100%;max-height:100%;
   display:flex;flex-direction:column;padding:18px 22px 16px;overflow:hidden;
 }
 #ed-head{display:flex;align-items:center;gap:12px;flex:none;margin-bottom:10px;padding-right:44px;}
@@ -1181,6 +1183,7 @@ body.dark-mode #edition-overlay{
 }
 .ed-seg button:last-child{border-right:0;}
 #ed-qual button{flex:1;}
+#ed-evtype button{flex:1 1 0;min-width:min-content;padding:0 6px;white-space:nowrap;}      /* trois parts égales, sans jamais couper un libellé */
 .ed-seg button[aria-pressed=true]{background:var(--brass);color:var(--ed-onbrass);}
 .ed-chips{display:flex;flex-wrap:wrap;gap:8px;}
 .ed-chip{
@@ -1195,7 +1198,6 @@ body.dark-mode #edition-overlay{
 .ed-chip-dot{width:10px;height:10px;border-radius:50%;background:var(--c,var(--brass));flex:none;}
 .ed-chip:not([aria-pressed=true]) .ed-chip-dot{opacity:0.4;}
 .ed-chip-n{font-size:11.5px;font-weight:500;color:var(--slate);font-variant-numeric:tabular-nums;}
-.ed-chip.ed-pre{--c:var(--brass);}
 .ed-sw{display:flex;align-items:center;gap:12px;min-height:44px;cursor:pointer;position:relative;}
 .ed-sw input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer;}
 .ed-sw-track{flex:none;width:46px;height:28px;border-radius:14px;background:var(--ed-off);position:relative;transition:background .15s;}

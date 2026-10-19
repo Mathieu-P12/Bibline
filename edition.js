@@ -45,7 +45,11 @@ const TS = {
     secComps:"Compressions", secLayout:"Mise en page", secExport:"Export",
     from:"Début", to:"Fin", bceBtn:"av. n. è.", ceBtn:"de n. è.",
     yearAria:l=>`${l} : année`, eraAria:l=>`${l} : ère`,
-    presetAll:"Tout", presetView:"Vue actuelle", presetsAria:"Périodes prédéfinies",
+    // v0.11.1 : tri des éléments, états vides, nombre sous le titre
+    typeAria:"Type d’élément", typeAll:"Tous", typeEv:"Événements", typePer:"Périodes",
+    listNoCat:"Aucune catégorie sélectionnée : choisissez-en une dans « Catégories » pour voir les éléments.",
+    listNoPer:"Les barres de périodes sont désactivées : activez « Afficher les périodes (barres) » ci-dessus.",
+    showCounts:"Nombre d’événements et de périodes sous le titre", sheetNoCat:"Choisissez au moins une catégorie pour commencer la frise.",
     errStart:(a,b)=>`Le début doit se situer entre ${a} et ${b}.`,
     errEnd:(a,b)=>`La fin doit se situer entre ${a} et ${b}.`,
     errSpan:n=>`La période doit couvrir au moins ${n} ans.`,
@@ -113,7 +117,11 @@ const TS = {
     secComps:"Compressions", secLayout:"Layout", secExport:"Export",
     from:"Start", to:"End", bceBtn:"BCE", ceBtn:"CE",
     yearAria:l=>`${l}: year`, eraAria:l=>`${l}: era`,
-    presetAll:"All", presetView:"Current view", presetsAria:"Preset periods",
+    // v0.11.1: item type filter, empty states, counts under the title
+    typeAria:"Item type", typeAll:"All", typeEv:"Events", typePer:"Periods",
+    listNoCat:"No category selected: choose one under “Categories” to see the items.",
+    listNoPer:"Period bars are turned off: switch on “Show periods (bars)” above.",
+    showCounts:"Event and period counts under the title", sheetNoCat:"Pick at least one category to start building the timeline.",
     errStart:(a,b)=>`The start must be between ${a} and ${b}.`,
     errEnd:(a,b)=>`The end must be between ${a} and ${b}.`,
     errSpan:n=>`The period must cover at least ${n} years.`,
@@ -181,7 +189,11 @@ const TS = {
     secComps:"Compresiones", secLayout:"Diseño", secExport:"Exportar",
     from:"Inicio", to:"Fin", bceBtn:"a. C.", ceBtn:"d. C.",
     yearAria:l=>`${l}: año`, eraAria:l=>`${l}: era`,
-    presetAll:"Todo", presetView:"Vista actual", presetsAria:"Periodos predefinidos",
+    // v0.11.1: tipo de elemento, estados vacíos, número bajo el título
+    typeAria:"Tipo de elemento", typeAll:"Todos", typeEv:"Eventos", typePer:"Periodos",
+    listNoCat:"Ninguna categoría seleccionada: elige una en «Categorías» para ver los elementos.",
+    listNoPer:"Las barras de periodos están desactivadas: activa «Mostrar los periodos (barras)» más arriba.",
+    showCounts:"Número de eventos y de periodos bajo el título", sheetNoCat:"Elige al menos una categoría para empezar la línea de tiempo.",
     errStart:(a,b)=>`El inicio debe estar entre ${a} y ${b}.`,
     errEnd:(a,b)=>`El fin debe estar entre ${a} y ${b}.`,
     errSpan:n=>`El periodo debe abarcar al menos ${n} años.`,
@@ -249,7 +261,11 @@ const TS = {
     secComps:"压缩", secLayout:"版面", secExport:"导出",
     from:"起", to:"止", bceBtn:"公元前", ceBtn:"公元",
     yearAria:l=>`${l}：年份`, eraAria:l=>`${l}：纪元`,
-    presetAll:"全部", presetView:"当前视图", presetsAria:"预设时间范围",
+    // v0.11.1：条目类型、空状态、标题下方的数量
+    typeAria:"条目类型", typeAll:"全部", typeEv:"事件", typePer:"时间段",
+    listNoCat:"尚未选择分类：请在“分类”中选择至少一个，才能看到条目。",
+    listNoPer:"时间段条形已关闭：请先打开上方的“显示时间段（条形）”。",
+    showCounts:"标题下方显示事件和时间段的数量", sheetNoCat:"请至少选择一个分类，开始制作时间线。",
     errStart:(a,b)=>`起点须在 ${a} 与 ${b} 之间。`,
     errEnd:(a,b)=>`终点须在 ${a} 与 ${b} 之间。`,
     errSpan:n=>`时间范围至少要跨 ${n} 年。`,
@@ -703,8 +719,11 @@ function renderSheet(ctx, Wpx, Hpx, st, opts){
   const docTitle = (st.title || '').trim() || t('defaultTitle');
   ctx.fillStyle = PAL.blue; ctx.fillRect(M, 30, 54, 6);
   ctx.fillStyle = PAL.ink; fitFont(ctx, docTitle, '700', 25, W - 2 * M, 14); ctx.fillText(docTitle, M, 68);
-  const sub = [fmtYear(st.start) + '  ' + L.arrow + '  ' + fmtYear(st.end), t('sheetEvents', pk.ev.length)];
-  if(pack.placed.length) sub.push(t('sheetPeriods', pack.placed.length));
+  const sub = [fmtYear(st.start) + '  ' + L.arrow + '  ' + fmtYear(st.end)];
+  if(st.counts){                                                   // option « Nombre d'événements et de périodes sous le titre »
+    sub.push(t('sheetEvents', pk.ev.length));
+    if(pack.placed.length) sub.push(t('sheetPeriods', pack.placed.length));
+  }
   ctx.fillStyle = PAL.mute; fitFont(ctx, sub.join('   ·   '), '500', 10.5, W - 2 * M, 8); ctx.fillText(sub.join('   ·   '), M, 86);
 
   /* Géométrie des fiches */
@@ -830,7 +849,7 @@ function renderSheet(ctx, Wpx, Hpx, st, opts){
     });
     ctx.strokeStyle = 'rgba(60,56,48,.14)'; ctx.lineWidth = .8; ctx.beginPath(); ctx.moveTo(M, top2 - 3); ctx.lineTo(W - M, top2 - 3); ctx.stroke();
   }
-  if(!pk.ev.length && !pack.placed.length){ ctx.fillStyle = PAL.mute; F(ctx, '500', 12); ctx.textAlign = 'center'; ctx.fillText(t('sheetEmpty'), W / 2, bandTop - 40); }
+  if(!pk.ev.length && !pack.placed.length){ ctx.fillStyle = PAL.mute; F(ctx, '500', 12); ctx.textAlign = 'center'; ctx.fillText(t(st.cats.size ? 'sheetEmpty' : 'sheetNoCat'), W / 2, bandTop - 40); }
 
   /* Pied de page : légende des catégories à gauche, note sur les plis à droite */
   const fy = H - 26;
@@ -913,8 +932,9 @@ function canShareFile(file){
 /* ============================================================================
    7. RÉGLAGES : valeurs par défaut, enregistrement sur l'appareil
    ----------------------------------------------------------------------------
-   Première ouverture : on part de ce que montre la frise (période affichée,
-   catégories cochées, images). Ensuite, on retrouve la dernière composition.
+   Première ouverture : on part de la période et des images que montre la frise,
+   mais sans aucune catégorie choisie : la frise à exporter se construit à partir
+   de rien. Ensuite, on retrouve la dernière composition.
 ============================================================================ */
 let st = null;                                // réglages en cours
 let saveTimer = 0;
@@ -931,14 +951,6 @@ function viewPeriod(){
   try{ v = api.getView(); }catch(err){ v = null; }
   return (v && isFinite(v.start) && isFinite(v.end)) ? sanePeriod(v.start, v.end) : sanePeriod(-4500, 2036);
 }
-// Étendue de ce que contient la frise, arrondie au siècle
-function dataPeriod(){
-  const it = items();
-  if(!it.length) return viewPeriod();
-  let lo = Infinity, hi = -Infinity;
-  it.forEach(x => { lo = Math.min(lo, x.a); hi = Math.max(hi, x.b); });
-  return sanePeriod(Math.floor((lo - 10) / 100) * 100, Math.ceil((hi + 10) / 100) * 100);
-}
 function frisCats(){
   let a = [];
   try{ a = (api.getActiveCats() || []).filter(k => CATMAP[k]); }catch(err){ a = []; }
@@ -947,7 +959,8 @@ function frisCats(){
 function defaultState(){
   const per = viewPeriod();
   let img = true; try{ img = !!api.showImages(); }catch(err){ img = true; }
-  return {title:'', start:per[0], end:per[1], cats:frisCats(), hidden:new Set(), images:img, legend:true, periods:true,
+  // cats vide : aucune catégorie choisie au départ, la frise à exporter se construit à partir de rien
+  return {title:'', start:per[0], end:per[1], cats:new Set(), hidden:new Set(), images:img, legend:true, periods:true, counts:true,
     format:'a4l', gap:56, comps:[], hi:false};
 }
 function saveNow(){
@@ -956,8 +969,8 @@ function saveNow(){
   try{
     localStorage.setItem(STORE_KEY, JSON.stringify({
       v:1, title:st.title, start:st.start, end:st.end,
-      catsOff:Object.keys(CATMAP).filter(k => !st.cats.has(k)),
-      hidden:[...st.hidden], images:st.images, legend:st.legend, periods:st.periods,
+      catsOn:Object.keys(CATMAP).filter(k => st.cats.has(k)),
+      hidden:[...st.hidden], images:st.images, legend:st.legend, periods:st.periods, counts:st.counts,
       format:st.format, gap:st.gap, hi:st.hi,
       comps:st.comps.map(c => ({from:c.from, to:c.to})),
     }));
@@ -972,10 +985,9 @@ function loadState(){
   try{
     if(typeof o.title === 'string') d.title = o.title.slice(0, 60);
     if(isFinite(o.start) && isFinite(o.end)){ const p = sanePeriod(o.start, o.end); d.start = p[0]; d.end = p[1]; }
-    if(Array.isArray(o.catsOff)){
-      const off = new Set(o.catsOff), on = new Set(Object.keys(CATMAP).filter(k => !off.has(k)));
-      if(on.size) d.cats = on;
-    }
+    // Catégories choisies. Les réglages de la v0.11.0 ne notaient que les catégories décochées (« catsOff »), car tout était
+    // coché au départ : on ne les reprend pas, et on repart donc sans aucune catégorie, comme à la première ouverture.
+    if(Array.isArray(o.catsOn)) d.cats = new Set(o.catsOn.filter(k => CATMAP[k]));
     if(Array.isArray(o.hidden)){
       const known = new Set(items().map(x => x.id));
       d.hidden = new Set(o.hidden.filter(id => known.has(id)));
@@ -983,6 +995,7 @@ function loadState(){
     if(typeof o.images === 'boolean') d.images = o.images;
     if(typeof o.legend === 'boolean') d.legend = o.legend;
     if(typeof o.periods === 'boolean') d.periods = o.periods;
+    if(typeof o.counts === 'boolean') d.counts = o.counts;
     if(FORMATS[o.format]) d.format = o.format;
     if(isFinite(o.gap)) d.gap = clamp(Math.round(o.gap), 36, 110);
     if(typeof o.hi === 'boolean') d.hi = o.hi;
@@ -1015,15 +1028,15 @@ const ysh = y => (y < 0 ? '−' : '') + (Math.abs(yearNum(y)));
 const FOLD_SVG = '<path style="fill:var(--ed-foldl)" d="M0 6L6.4 2L12 18L0 18ZM12 6L18.4 2L24 18L12 18ZM24 6L30.4 2L36 18L24 18Z"/><path style="fill:var(--ed-foldd)" d="M6.4 2L12 6L12 18ZM18.4 2L24 6L24 18ZM30.4 2L36 6L36 18Z"/>';
 
 let D = null, inited = false, OPEN = false;
-const ui = {zoom:false, placing:null, hover:null, focusComp:null, busy:false, q:'', uid:0, last:null, size:'', force:false, raf:0,
-  w:0, wide:false, short:false, out:null, tt:0, rt:0, armed:false, fStart:null, fEnd:null, presets:[]};
+const ui = {zoom:false, placing:null, hover:null, focusComp:null, busy:false, q:'', type:'all', uid:0, last:null, size:'', force:false, raf:0,
+  w:0, wide:false, short:false, out:null, tt:0, rt:0, armed:false, fStart:null, fEnd:null};   // type : tri rapide de la liste des éléments (« all », « ev » ou « per »)
 
 function grab(){
   const d = {}, map = {overlay:'edition-overlay', card:'edition-card', close:'ed-close'};
   const ids = ['body','stage','zfit','zbig','goexport','placecancel','wrap','sheet','counts','hint','panel',
-    'v-per','perfields','pererr','presets','v-cat','catchips','catall','catnone','catsync','v-ev','swper','evsearch','evall','evnote','evlist',
+    'v-per','perfields','pererr','v-cat','catchips','catall','catnone','catsync','v-ev','swper','evsearch','evall','evtype','evnote','evlist',
     'v-img','swimg','imgstatus','imgretry','v-comp','complist','compadd','compplace','compclear','gapw','gapout',
-    'v-lay','doctitle','fmt','swleg','v-exp','qual','expinfo','result','result-name','result-note','result-save','result-share',
+    'v-lay','doctitle','swcnt','fmt','swleg','v-exp','qual','expinfo','result','result-name','result-note','result-save','result-share',
     'reset','toast','toastmsg','toastundo','s-exp'];
   ids.forEach(k => { map[k.replace(/-(\w)/g, (m, c) => c.toUpperCase())] = 'ed-' + k; });
   for(const k in map){ const el = $(map[k]); if(!el) return false; d[k] = el; }
@@ -1225,7 +1238,7 @@ function dateField(labelKey, get, apply, errNode){
 }
 
 /* ---------- Période ---------- */
-function afterPeriod(){ markPresets(); renderCats(); renderItems(); renderComps(); sum(); schedule(); saveSoon(); }
+function afterPeriod(){ renderCats(); renderItems(); renderComps(); sum(); schedule(); saveSoon(); }
 function buildPeriodFields(){
   ui.fStart = dateField('from', () => st.start, y => {
     if(y < YMIN || y > YMAX - MIN_SPAN) return t('errStart', fmtYear(YMIN), fmtYear(YMAX - MIN_SPAN));
@@ -1239,24 +1252,6 @@ function buildPeriodFields(){
   }, D.pererr);
   D.perfields.textContent = ''; D.perfields.append(ui.fStart.root, ui.fEnd.root);
 }
-function presetList(){
-  const all = dataPeriod(), view = viewPeriod(), list = [[t('presetAll'), all[0], all[1]]];
-  let eras = []; try{ eras = api.eras() || []; }catch(err){ eras = []; }
-  eras.forEach(e => { if(e && isFinite(e.start) && isFinite(e.end)){ const p = sanePeriod(e.start, e.end); list.push([String(e.title), p[0], p[1]]); } });
-  list.push([t('presetView'), view[0], view[1]]);
-  return list;
-}
-function buildPresets() {
-  ui.presets = presetList(); D.presets.textContent = '';
-  ui.presets.forEach(([lab, a, b]) => {
-    const bt = h('button', 'ed-chip ed-pre'); bt.type = 'button'; bt.textContent = lab;
-    bt.addEventListener('click', () => { st.start = a; st.end = b; ui.fStart.set(a); ui.fEnd.set(b); showErr(D.pererr, ''); afterPeriod(); });
-    D.presets.appendChild(bt);
-  });
-  markPresets();
-}
-function markPresets(){ [...D.presets.children].forEach((bt, i) => { const p = ui.presets[i]; bt.setAttribute('aria-pressed', String(!!p && st.start === p[1] && st.end === p[2])); }); }
-
 /* ---------- Catégories ---------- */
 function inPeriod(x){ return x.p ? (st.periods && x.b >= st.start && x.a <= st.end) : (x.a >= st.start && x.a <= st.end); }
 function buildCats(){
@@ -1291,9 +1286,12 @@ function renderItemsNote(){
   if(c && c.perLost) msg += ' ' + t('noteLost', c.perLost);
   D.evnote.textContent = msg;
 }
+function paintType(){ [...D.evtype.children].forEach(b => b.setAttribute('aria-pressed', String(b.dataset.k === ui.type))); }
 function renderItems(){
   const box = D.evlist, q = norm(ui.q.trim()), sc = buildScale(st, 46, 954);
-  const rows = items().filter(x => inPeriod(x) && inCats(x, st.cats) && (!q || norm(x.t + ' ' + itemDate(x)).includes(q)));
+  // Tri rapide : « all » garde tout, « ev » les événements seuls, « per » les périodes seules (x.p vaut true pour une période)
+  const rows = items().filter(x => inPeriod(x) && inCats(x, st.cats) && (!q || norm(x.t + ' ' + itemDate(x)).includes(q))
+    && (ui.type === 'all' || x.p === (ui.type === 'per')));
   box.textContent = '';
   const frag = document.createDocumentFragment();
   rows.forEach(x => {
@@ -1306,7 +1304,10 @@ function renderItems(){
     frag.appendChild(li);
   });
   box.appendChild(frag);
-  if(!rows.length) box.appendChild(h('li', 'ed-ev-empty', esc(q ? t('listNoMatch') : t('listEmpty'))));
+  if(!rows.length){
+    const why = !st.cats.size ? 'listNoCat' : (ui.type === 'per' && !st.periods) ? 'listNoPer' : q ? 'listNoMatch' : 'listEmpty';
+    box.appendChild(h('li', 'ed-ev-empty', esc(t(why))));
+  }
   renderItemsNote();
 }
 
@@ -1474,20 +1475,21 @@ function applyStatic(){
   }
 }
 function buildStatic(){          // éléments qui dépendent de la langue ou des données
-  buildPeriodFields(); buildPresets(); buildCats(); buildFormats();
+  buildPeriodFields(); buildCats(); buildFormats();
 }
 function syncAll(){
   ui.fStart.set(st.start); ui.fEnd.set(st.end); showErr(D.pererr, '');
   D.doctitle.value = st.title; D.fmt.value = st.format; D.swimg.checked = st.images; D.swleg.checked = st.legend; D.swper.checked = st.periods;
+  D.swcnt.checked = st.counts;
   D.gapw.value = st.gap; gapOut(); D.evsearch.value = ui.q;
-  paintQual(); paintZoom(); paintPlace(); disarmReset(); renderCats(); renderItems(); renderComps(); markPresets(); expInfo(); sum(); hint();
+  paintQual(); paintZoom(); paintPlace(); paintType(); disarmReset(); renderCats(); renderItems(); renderComps(); expInfo(); sum(); hint();
   showResult(ui.out ? (D.resultNote.textContent || '') : '');
   sizeWrap(); schedule();
 }
-function refreshAll(){ renderCats(); renderItems(); renderComps(); markPresets(); sum(); schedule(); }
+function refreshAll(){ renderCats(); renderItems(); renderComps(); sum(); schedule(); }
 function disarmReset(){ const b = D.reset; clearTimeout(ui.rt); delete b.dataset.armed; b.textContent = t('reset'); b.classList.remove('ed-danger'); }
 function resetAll(){
-  st = defaultState(); ui.q = ''; ui.zoom = false; ui.hover = null; ui.focusComp = null; ui.out = null;
+  st = defaultState(); ui.q = ''; ui.type = 'all'; ui.zoom = false; ui.hover = null; ui.focusComp = null; ui.out = null;
   setPlacing(false); buildCats(); buildFormats(); syncAll(); saveSoon(); toast(t('toastReset'));
 }
 function markSeen(){
@@ -1515,6 +1517,10 @@ function wireUI(){
   D.swper.addEventListener('change', e => { st.periods = e.target.checked; renderCats(); renderItems(); sum(); schedule(); saveSoon(); });
   D.evsearch.addEventListener('input', e => { ui.q = e.target.value; renderItems(); });
   D.evall.onclick = () => { st.hidden.clear(); renderItems(); sum(); schedule(); saveSoon(); };
+  D.evtype.addEventListener('click', e => {
+    const b = e.target.closest && e.target.closest('button'); if(!b || !D.evtype.contains(b)) return;
+    ui.type = b.dataset.k; paintType(); renderItems();
+  });
   D.evlist.addEventListener('change', ev => {
     const el = ev.target, li = el.closest && el.closest('li'); if(!li || el.type !== 'checkbox') return;
     if(el.checked) st.hidden.delete(li.dataset.id); else st.hidden.add(li.dataset.id);
@@ -1537,6 +1543,7 @@ function wireUI(){
   D.doctitle.addEventListener('input', e => { st.title = e.target.value; schedule(); saveSoon(); });
   D.fmt.addEventListener('change', e => { st.format = e.target.value; sum(); expInfo(); sizeWrap(); schedule(); saveSoon(); });
   D.swleg.addEventListener('change', e => { st.legend = e.target.checked; schedule(); saveSoon(); });
+  D.swcnt.addEventListener('change', e => { st.counts = e.target.checked; schedule(); saveSoon(); });
   D.qual.addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; st.hi = b.dataset.q === 'hi'; paintQual(); expInfo(); saveSoon(); });
   D.panel.querySelectorAll('[data-x]').forEach(b => b.addEventListener('click', () => exportAs(b.dataset.x)));
   D.resultSave.onclick = () => { if(ui.out){ anchorDownload(ui.out.name, ui.out.blob); toast(t('toastDownloaded', ui.out.name)); } };
@@ -1580,7 +1587,7 @@ function openWin(){
   if(!inited) return;
   OPEN = true; DATA = null; loadCats();
   st = loadState();
-  ui.q = ''; ui.zoom = false; ui.hover = null; ui.focusComp = null; ui.armed = false; ui.size = ''; ui.last = null;
+  ui.q = ''; ui.type = 'all'; ui.zoom = false; ui.hover = null; ui.focusComp = null; ui.armed = false; ui.size = ''; ui.last = null;
   imgListener = () => { schedule(true); };
   D.overlay.classList.add('open');
   hideToast(); setPlacing(false); disarmReset();

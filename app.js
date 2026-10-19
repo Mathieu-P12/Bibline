@@ -1,6 +1,6 @@
 (function(){
 
-const APP_VERSION = 'v0.11.0';
+const APP_VERSION = 'v0.11.1';
 
 /* ---------- Arbre généalogique (v0.10) ----------
    Tout le code de l'arbre est dans arbre.js, chargé avant ce fichier. Si arbre.js manquait ou plantait,
@@ -3571,8 +3571,7 @@ const editionApi = {
   getView: ()=> ({start:viewStart, end:viewEnd}),       // période actuellement affichée sur la frise
   getActiveCats: ()=> [...activeCats],                 // catégories actuellement cochées dans les filtres
   showImages: ()=> timelineShowImages,
-  lang: ()=> currentLang,
-  eras: ()=> ERAS                                      // pour les périodes prédéfinies (Antiquité, Moyen Âge…)
+  lang: ()=> currentLang
 };
 
 /* ---------- Init ---------- */

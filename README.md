@@ -11,7 +11,7 @@
 
 <p align="center">
   <a href="https://mathieu-p12.github.io/Bibline/"><img alt="Démo en ligne" src="https://img.shields.io/badge/d%C3%A9mo-en%20ligne-8A6A34?style=flat-square"></a>
-  <img alt="Version" src="https://img.shields.io/badge/version-0.11.0-B08D4C?style=flat-square">
+  <img alt="Version" src="https://img.shields.io/badge/version-0.11.1-B08D4C?style=flat-square">
   <img alt="PWA" src="https://img.shields.io/badge/PWA-hors%20ligne-3F7A72?style=flat-square">
   <img alt="Langues" src="https://img.shields.io/badge/langues-FR%20%C2%B7%20EN%20%C2%B7%20ES%20%C2%B7%20ZH-48607E?style=flat-square">
 </p>
@@ -119,13 +119,13 @@ Le bouton **Édition** de la barre latérale ouvre une fenêtre où l'on compose
 - **Catégories de départ** : **Personnage principal** (Abraham, Isaac, Jacob, Joseph, Moïse), **Lignée de Jésus** (de Térah à Pérez, mères comprises), **Lignée lévite** (de Lévi à Moïse, Aaron et leurs fils) et **12 Tribus** (les douze fils de Jacob). Elles s'ajoutent à la catégorie « Personnage » et se renomment, se recolorent ou se suppriment comme les autres
 
 ### Mode édition : exporter une vue en PDF ou en image
-- **Un bouton « Édition »** dans la barre latérale ouvre une fenêtre pour composer une vue de la frise, puis l'exporter en **PDF, PNG ou JPG**
-- **Période** : date de début et de fin (avant ou après notre ère), saisies à la main ou par raccourcis (période affichée, toute la frise, une époque)
-- **Catégories** à garder ou non ; les barres de périodes se retirent d'un seul interrupteur
-- **Masquer des éléments** : un clic sur une fiche ou une barre dans l'aperçu, ou une case dans la liste (avec recherche) ; un message permet d'annuler
+- **Un bouton « Édition »** dans la barre latérale ouvre une fenêtre, qui occupe presque tout l'écran, pour composer une vue de la frise, puis l'exporter en **PDF, PNG ou JPG**
+- **Période** : date de début et de fin (avant ou après notre ère), saisies à la main
+- **Catégories** : aucune n'est choisie au départ, la frise à exporter se construit à partir de rien (boutons « Toutes », « Aucune » et « Comme la frise ») ; les barres de périodes se retirent d'un seul interrupteur
+- **Masquer des éléments** : un clic sur une fiche ou une barre dans l'aperçu, ou une case dans la liste (avec recherche et tri rapide : tous, événements ou périodes) ; un message permet d'annuler
 - **Images** affichées ou non ; une image qui ne peut pas être chargée (hors connexion, site qui la refuse) laisse la fiche sans image, avec un bouton « Réessayer »
 - **Compressions temporelles** : un pli remplace une période creuse par une zone de largeur fixe, pour rapprocher deux moments éloignés ; il se propose tout seul ou se pose en deux clics sur l'aperçu
-- **Mise en page** : titre, A4 ou A3 paysage ou écran 16:9, qualité standard ou haute (jusqu'à environ 300 dpi), légende facultative
+- **Mise en page** : titre (avec, au choix, le nombre d'événements et de périodes en dessous), A4 ou A3 paysage ou écran 16:9, qualité standard ou haute (jusqu'à environ 300 dpi), légende facultative
 - **Sur ordinateur**, le fichier se télécharge directement ; **sur téléphone**, il passe par la feuille de partage du système (« Enregistrer dans Fichiers »…)
 - Les réglages sont mémorisés sur l'appareil ; la frise elle-même n'est jamais modifiée
 
