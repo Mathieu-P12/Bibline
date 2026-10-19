@@ -11,7 +11,7 @@
 
 <p align="center">
   <a href="https://mathieu-p12.github.io/Bibline/"><img alt="Démo en ligne" src="https://img.shields.io/badge/d%C3%A9mo-en%20ligne-8A6A34?style=flat-square"></a>
-  <img alt="Version" src="https://img.shields.io/badge/version-0.10.1-B08D4C?style=flat-square">
+  <img alt="Version" src="https://img.shields.io/badge/version-0.11.0-B08D4C?style=flat-square">
   <img alt="PWA" src="https://img.shields.io/badge/PWA-hors%20ligne-3F7A72?style=flat-square">
   <img alt="Langues" src="https://img.shields.io/badge/langues-FR%20%C2%B7%20EN%20%C2%B7%20ES%20%C2%B7%20ZH-48607E?style=flat-square">
 </p>
@@ -67,6 +67,14 @@ L'idée de départ est simple : on navigue sur une carte en zoomant et en glissa
 |:---:|:---:|
 | <img src="docs/captures/filtres-categories.jpg" alt="Filtres de catégories sur la frise et dans la recherche"> | <img src="docs/captures/parametres.jpg" alt="Panneau des paramètres de l'application"> |
 
+### Exporter une vue
+
+<p align="center">
+  <img src="docs/captures/mode-edition.jpg" alt="Mode édition : réglages à gauche, aperçu de la planche à exporter à droite, avec un pli qui condense une période creuse" width="100%">
+</p>
+
+Le bouton **Édition** de la barre latérale ouvre une fenêtre où l'on compose une vue de la frise : réglages à gauche, aperçu fidèle à l'export à droite. Ici, de 2300 av. n. è. à 200, avec un pli qui condense les siècles sans événement.
+
 ## Fonctionnalités
 
 ### Navigation dans le temps
@@ -110,6 +118,17 @@ L'idée de départ est simple : on navigue sur une carte en zoomant et en glissa
 - **Contenu de départ** : 60 personnages de Térah à Moïse et leurs familles, aux dates approximatives (à vérifier), installés une seule fois ; un personnage déjà saisi sous le même nom n'est pas doublé
 - **Catégories de départ** : **Personnage principal** (Abraham, Isaac, Jacob, Joseph, Moïse), **Lignée de Jésus** (de Térah à Pérez, mères comprises), **Lignée lévite** (de Lévi à Moïse, Aaron et leurs fils) et **12 Tribus** (les douze fils de Jacob). Elles s'ajoutent à la catégorie « Personnage » et se renomment, se recolorent ou se suppriment comme les autres
 
+### Mode édition : exporter une vue en PDF ou en image
+- **Un bouton « Édition »** dans la barre latérale ouvre une fenêtre pour composer une vue de la frise, puis l'exporter en **PDF, PNG ou JPG**
+- **Période** : date de début et de fin (avant ou après notre ère), saisies à la main ou par raccourcis (période affichée, toute la frise, une époque)
+- **Catégories** à garder ou non ; les barres de périodes se retirent d'un seul interrupteur
+- **Masquer des éléments** : un clic sur une fiche ou une barre dans l'aperçu, ou une case dans la liste (avec recherche) ; un message permet d'annuler
+- **Images** affichées ou non ; une image qui ne peut pas être chargée (hors connexion, site qui la refuse) laisse la fiche sans image, avec un bouton « Réessayer »
+- **Compressions temporelles** : un pli remplace une période creuse par une zone de largeur fixe, pour rapprocher deux moments éloignés ; il se propose tout seul ou se pose en deux clics sur l'aperçu
+- **Mise en page** : titre, A4 ou A3 paysage ou écran 16:9, qualité standard ou haute (jusqu'à environ 300 dpi), légende facultative
+- **Sur ordinateur**, le fichier se télécharge directement ; **sur téléphone**, il passe par la feuille de partage du système (« Enregistrer dans Fichiers »…)
+- Les réglages sont mémorisés sur l'appareil ; la frise elle-même n'est jamais modifiée
+
 ### Données et confort
 - **Fonctionne hors ligne** : application installable (PWA)
 - **Sauvegarde automatique** sur l'appareil à chaque modification
@@ -151,6 +170,7 @@ Les données restent **sur votre appareil**. Pour les sauvegarder ou les transf�
 | **[Dexie.js](https://dexie.org)** | Stockage local persistant (IndexedDB) |
 | **[Leaflet](https://leafletjs.com)** + OpenStreetMap / Esri | Carte interactive |
 | **SVG** | Arbre généalogique : placement calculé, liens tracés, zoom et déplacement |
+| **Export PNG / JPG / PDF** | Planche dessinée sur un canvas ; PNG et JPG natifs, PDF d'une page assemblé à la main (aucune bibliothèque) |
 | **Service Worker** | Cache de l'application pour le fonctionnement hors ligne |
 
 Aucun serveur, aucun compte, aucune dépendance à installer : du HTML, du CSS et du JavaScript.
@@ -160,6 +180,7 @@ Aucun serveur, aucun compte, aucune dépendance à installer : du HTML, du CSS e
 ├── styles.css              Apparence : couleurs, polices, mise en page, mode sombre
 ├── app.js                  Fonctionnement : frise, recherche, formulaires, carte, stockage
 ├── arbre.js                Arbre généalogique : placement, liens, volet, filtre, ajout de personnages
+├── edition.js              Mode édition : composition d'une vue, aperçu, export PDF / PNG / JPG
 ├── bible-books.js          Les 66 livres de la Bible et leurs abréviations (FR · EN · ES)
 ├── data.json               Contenu livré avec l'application
 ├── manifest.json           Déclaration de l'application installable
@@ -170,8 +191,9 @@ Aucun serveur, aucun compte, aucune dépendance à installer : du HTML, du CSS e
 └── docs/                   Logo et captures de ce README
 ```
 
-L'ordre de chargement compte : `bible-books.js` et `arbre.js` sont lus avant `app.js`, qui s'en sert.
-Si `arbre.js` manquait, la frise fonctionnerait quand même : seuls les boutons de l'arbre disparaîtraient.
+L'ordre de chargement compte : `bible-books.js`, `arbre.js` et `edition.js` sont lus avant `app.js`, qui s'en sert.
+Si `arbre.js` ou `edition.js` manquait, la frise fonctionnerait quand même : seuls les boutons concernés
+(l'arbre, l'édition) disparaîtraient.
 
 ### Deux bases, un identifiant
 
@@ -201,15 +223,37 @@ Le réglage « Catégories en vue globale » est posé au départ sur **Personna
 touché est migré une fois (`overviewDefaultsV`) ; un réglage personnalisé n'est jamais modifié, et une
 condition qui renvoie à une catégorie supprimée est simplement ignorée.
 
+### Le mode édition
+
+Le mode édition ne fait que **lire** la frise : au démarrage, `app.js` lui remet un petit objet
+(`editionApi`) qui donne accès aux éléments, aux catégories, à la vue affichée et à la langue.
+`edition.js` n'écrit jamais dans la base de l'appareil ; ses propres réglages (période, catégories,
+éléments masqués, plis, format…) sont gardés à part, dans le stockage du navigateur, sous la clé
+`bibline-edition`.
+
+- **Un seul dessin** sert à l'aperçu et aux fichiers (`renderSheet`, sur une feuille de 1000 unités de
+  large) : ce que l'on voit est exactement ce qui est exporté.
+- **Les plis** découpent l'échelle du temps en morceaux (`buildScale`) : l'échelle est proportionnelle
+  entre deux plis, et chaque pli a une largeur fixe.
+- **Les images** venues d'un autre site « salissent » un canvas, et le navigateur refuse alors d'en
+  tirer un fichier. Chacune est donc chargée par `fetch` (mode CORS), recopiée en version réduite, puis
+  dessinée. Si le site refuse, ou sans connexion, la fiche est exportée sans image.
+- **Le PDF** est écrit à la main : une page qui contient la planche en JPEG. Aucune bibliothèque,
+  donc rien de plus à charger hors ligne.
+- **La taille** des fichiers (A4 ou A3, 150 ou 300 dpi) est plafonnée à 16 millions de pixels, ce
+  que les téléphones savent produire.
+
 ### Mettre une nouvelle version en ligne
 
 1. Remplacer les fichiers modifiés à la racine du dépôt
-2. **Changer `CACHE_VERSION` dans `sw.js`** (par exemple `bibline-v0.10.2`)
+2. **Changer `CACHE_VERSION` dans `sw.js`** (par exemple `bibline-v0.11.1`)
 
 Le second point est le seul vraiment indispensable : il efface l'ancien cache et force le
 téléchargement groupé de tous les fichiers. Sans lui, un appareil pourrait garder un ancien
 `app.js` à côté d'un nouveau `index.html`. Si un fichier manque lors de la mise en ligne, les
 autres sont tout de même mis en cache et la console du navigateur nomme celui qui manque.
+Un nouveau fichier de code (comme `edition.js`) doit aussi être ajouté à la liste `APP_SHELL` de
+`sw.js`, faute de quoi il ne serait pas disponible hors ligne.
 
 Deux noms techniques gardent volontairement une ancienne appellation : la base locale
 (`FriseChronologiqueDB`) et la clé des réglages (`frise-settings`). Les renommer donnerait un code
@@ -234,6 +278,7 @@ Ce fichier a exactement le format des exports de l'application. Pour le régén�
 - [x] Références bibliques ouvertes dans JW Library
 - [x] **Arbre généalogique** des personnages, relié à la frise
 - [x] Catégories livrées avec l'arbre (personnages principaux, lignées, tribus) et **filtre par catégorie**
+- [x] **Mode édition** : composer une vue (période, catégories, éléments masqués, images, compressions temporelles) et l'exporter en PDF, PNG ou JPG
 - [ ] Stockage dans un dossier du disque, synchronisable via un service cloud
 - [ ] Application Android native
 

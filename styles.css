@@ -1071,3 +1071,265 @@ body.dark-mode #taf-error{color:#D9A19A;}
   #app.portrait .rail-btn{width:34px;height:34px;}
   #app.portrait #add-btn{width:32px;height:32px;}
 }
+
+/* ============================================================================
+   Mode édition (v0.11)
+   Composer une vue de la frise (période, catégories, éléments, images, compressions) puis l'exporter
+   en PDF, PNG ou JPG. Tout est préfixé #edition-… / #ed-… (ou rangé sous #edition-overlay) : rien ne
+   touche aux autres fenêtres. Le code correspondant est dans edition.js.
+============================================================================ */
+#edition-overlay{
+  z-index:54;                                   /* au-dessus des listes (50) et de l'arbre (52), sous la fiche d'édition (65) */
+  --ed-card2:#F3EEDF; --ed-line:rgba(30,37,48,0.13); --ed-line2:rgba(30,37,48,0.26); --ed-off:#8F8A7A;
+  --ed-onbrass:#FBF8EF; --ed-tint:rgba(138,106,52,0.13); --ed-warn:#A9501A; --ed-err:#A8372E;
+  --ed-stagebg:#D8D2BF; --ed-foldl:#C9B98F; --ed-foldd:#8A6A34; --ed-orange:#D4561E;
+  --ed-shadow:0 1px 2px rgba(30,37,48,0.1),0 14px 30px -16px rgba(30,37,48,0.35);
+}
+body.dark-mode #edition-overlay{
+  --ed-card2:#2B251F; --ed-line:rgba(237,230,214,0.13); --ed-line2:rgba(237,230,214,0.28); --ed-off:#7A7060;
+  --ed-onbrass:#191512; --ed-tint:rgba(201,169,97,0.16); --ed-warn:#E89A66; --ed-err:#F08A80;
+  --ed-stagebg:#0E0B09; --ed-foldl:#6F5E3A; --ed-foldd:#C9A961; --ed-orange:#F07A45;
+  --ed-shadow:0 1px 2px rgba(0,0,0,0.4),0 14px 30px -16px rgba(0,0,0,0.7);
+}
+#edition-overlay [hidden]{display:none !important;}
+#edition-card{
+  width:100%;max-width:1320px;height:100%;max-height:940px;
+  display:flex;flex-direction:column;padding:18px 22px 16px;overflow:hidden;
+}
+#ed-head{display:flex;align-items:center;gap:12px;flex:none;margin-bottom:10px;padding-right:44px;}
+#ed-head .ed-mark{width:40px;height:20px;flex:none;}
+#edition-card h2{margin:0;padding:0;font-size:19px;line-height:1.15;font-weight:700;letter-spacing:-0.01em;}
+#ed-sub{margin:3px 0 0;font-size:12.5px;line-height:1.4;color:var(--slate);}
+#ed-close{top:16px;right:18px;width:34px;height:34px;}
+
+/* Corps : une colonne (aperçu en haut, réglages qui défilent dessous) ou deux colonnes (réglages à gauche, aperçu à droite) */
+#ed-body{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;gap:10px;}
+#ed-stage{flex:none;min-width:0;display:flex;flex-direction:column;}
+#ed-panel{
+  flex:1 1 auto;min-height:0;min-width:0;overflow-y:auto;overflow-x:hidden;
+  touch-action:pan-y;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:2px 3px 6px 2px;
+}
+#edition-overlay.ed-wide #ed-body{flex-direction:row;gap:26px;}
+#edition-overlay.ed-wide #ed-panel{order:0;flex:0 0 clamp(340px,34%,430px);}
+#edition-overlay.ed-wide #ed-stage{order:1;flex:1 1 0;min-height:0;}
+
+/* Aperçu */
+#ed-stagebar{display:flex;align-items:center;gap:8px;flex:none;margin-bottom:8px;}
+#ed-stagebar .ed-btn{margin-left:auto;}
+#ed-wrap{
+  position:relative;display:flex;flex:none;min-width:0;border:1px solid var(--ed-line2);border-radius:12px;
+  background:var(--ed-stagebg);overflow:hidden;box-shadow:var(--ed-shadow);
+}
+#edition-overlay.ed-wide #ed-wrap{flex:1 1 0;min-height:0;}
+#ed-wrap.zoom{overflow:auto;touch-action:pan-x pan-y;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
+/* Le style général des canevas (curseur « main », pas de défilement au doigt) est fait pour la frise, pas pour l'aperçu */
+#ed-sheet{display:block;flex:none;margin:auto;position:static;z-index:auto;cursor:default;touch-action:manipulation;width:auto;height:auto;}
+#ed-counts{flex:none;margin:8px 0 0;font-size:12px;line-height:1.45;color:var(--slate);min-height:1.45em;}
+#ed-counts b{color:var(--ink-900);}
+#ed-counts .ed-w{color:var(--ed-warn);font-weight:600;}
+#ed-hint{flex:none;margin:4px 0 0;font-size:12.5px;line-height:1.45;color:var(--slate);min-height:1.5em;}
+#ed-hint.act{color:var(--ink-900);font-weight:600;border-left:3px solid var(--ed-orange);padding-left:8px;}
+
+/* Sections repliables */
+#edition-overlay .ed-sec{
+  background:var(--ed-card2);border:1px solid var(--ed-line);border-radius:14px;margin-bottom:10px;overflow:hidden;
+}
+#edition-overlay .ed-sec>summary{
+  list-style:none;display:flex;align-items:center;gap:10px;padding:12px 14px 12px 16px;min-height:52px;
+  cursor:pointer;font-size:14px;font-weight:600;color:var(--ink-900);
+}
+#edition-overlay .ed-sec>summary::-webkit-details-marker{display:none;}
+#edition-overlay .ed-sec>summary::after{
+  content:"";flex:none;width:8px;height:8px;margin:0 4px 3px 2px;
+  border-right:2px solid var(--slate);border-bottom:2px solid var(--slate);transform:rotate(45deg);transition:transform .15s;
+}
+#edition-overlay .ed-sec[open]>summary::after{transform:rotate(225deg);margin-bottom:-3px;}
+.ed-sh-t{flex:none;}
+.ed-sh-v{margin-left:auto;min-width:0;font-size:12px;font-weight:500;color:var(--slate);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ed-sec-b{padding:2px 16px 16px;display:flex;flex-direction:column;gap:12px;}
+#edition-overlay .ed-note{margin:0;font-size:12.5px;line-height:1.45;color:var(--slate);}
+#edition-overlay .ed-err{margin:0;font-size:12.5px;font-weight:600;color:var(--ed-err);}
+
+/* Contrôles */
+#edition-overlay :is(button,input,select,summary):focus-visible{outline:2px solid var(--brass);outline-offset:2px;}
+#edition-overlay input[type=text], #edition-overlay input[type=search], #edition-overlay select{
+  -webkit-appearance:none;appearance:none;font-family:inherit;font-size:16px;color:var(--ink-900);
+  background:var(--paper-card);border:1px solid var(--ed-line2);border-radius:10px;min-height:44px;padding:8px 12px;width:100%;min-width:0;
+}
+#edition-overlay select{
+  background-image:linear-gradient(45deg,transparent 50%,var(--slate) 50%),linear-gradient(135deg,var(--slate) 50%,transparent 50%);
+  background-position:calc(100% - 20px) 50%,calc(100% - 14px) 50%;background-size:6px 6px,6px 6px;background-repeat:no-repeat;padding-right:36px;
+}
+.ed-btn{
+  font-family:inherit;font-size:13px;font-weight:600;min-height:44px;padding:0 16px;border-radius:10px;
+  border:1px solid var(--ed-line2);background:var(--paper-card);color:var(--ink-900);cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+}
+.ed-btn:hover{background:var(--ed-card2);}
+.ed-btn.ed-pri{background:var(--brass);border-color:var(--brass);color:var(--ed-onbrass);}
+.ed-btn.ed-pri:hover{background:var(--brass);filter:brightness(1.08);}
+.ed-btn.ed-sm{min-height:40px;padding:0 12px;font-size:12.5px;}
+.ed-btn.ed-ghost{background:transparent;}
+.ed-btn.ed-danger{border-color:var(--ed-err);color:var(--ed-err);}
+.ed-btn[aria-pressed=true]:not(.ed-pri){background:var(--ed-tint);border-color:var(--brass);color:var(--brass);}
+.ed-btn:disabled{opacity:0.55;cursor:default;}
+.ed-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+.ed-seg{display:inline-flex;border:1px solid var(--ed-line2);border-radius:10px;overflow:hidden;background:var(--paper-card);}
+.ed-seg button{
+  font-family:inherit;font-size:12.5px;font-weight:600;min-height:40px;padding:0 12px;border:0;border-right:1px solid var(--ed-line);
+  background:transparent;color:var(--ink-900);cursor:pointer;
+}
+.ed-seg button:last-child{border-right:0;}
+#ed-qual button{flex:1;}
+.ed-seg button[aria-pressed=true]{background:var(--brass);color:var(--ed-onbrass);}
+.ed-chips{display:flex;flex-wrap:wrap;gap:8px;}
+.ed-chip{
+  position:relative;font-family:inherit;font-size:12.5px;font-weight:600;min-height:40px;padding:0 13px;border-radius:20px;
+  border:1.5px solid var(--ed-line2);background:var(--paper-card);color:var(--slate);cursor:pointer;
+  display:inline-flex;align-items:center;gap:8px;overflow:hidden;
+}
+.ed-chip::before{content:"";position:absolute;inset:0;background:var(--c,var(--brass));opacity:0;transition:opacity .12s;}
+.ed-chip>*{position:relative;}
+.ed-chip[aria-pressed=true]{color:var(--ink-900);border-color:var(--c,var(--brass));}
+.ed-chip[aria-pressed=true]::before{opacity:0.17;}
+.ed-chip-dot{width:10px;height:10px;border-radius:50%;background:var(--c,var(--brass));flex:none;}
+.ed-chip:not([aria-pressed=true]) .ed-chip-dot{opacity:0.4;}
+.ed-chip-n{font-size:11.5px;font-weight:500;color:var(--slate);font-variant-numeric:tabular-nums;}
+.ed-chip.ed-pre{--c:var(--brass);}
+.ed-sw{display:flex;align-items:center;gap:12px;min-height:44px;cursor:pointer;position:relative;}
+.ed-sw input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer;}
+.ed-sw-track{flex:none;width:46px;height:28px;border-radius:14px;background:var(--ed-off);position:relative;transition:background .15s;}
+.ed-sw-track::after{
+  content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;
+  background:var(--paper-card);box-shadow:0 1px 3px rgba(0,0,0,0.35);transition:transform .15s;
+}
+.ed-sw input:checked+.ed-sw-track{background:var(--brass);}
+.ed-sw input:checked+.ed-sw-track::after{transform:translateX(18px);}
+.ed-sw input:focus-visible+.ed-sw-track{outline:2px solid var(--brass);outline-offset:3px;}
+.ed-sw-lab{font-weight:600;font-size:13.5px;color:var(--ink-900);}
+.ed-fld{display:flex;flex-direction:column;gap:6px;}
+.ed-fld>span, .ed-df-l{font-size:11px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:var(--slate);}
+.ed-rng{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.ed-rng label{font-size:12.5px;font-weight:600;color:var(--ink-900);}
+.ed-rng input{flex:1 1 70px;min-width:0;accent-color:var(--brass);height:32px;}
+.ed-rng output{font-size:12.5px;color:var(--slate);min-width:5.2em;text-align:right;}
+
+/* Champs de date : année + av. / de n. è. */
+.ed-dates{display:flex;flex-direction:column;gap:10px;}
+.ed-df{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.ed-df-l{width:50px;flex:none;}
+#edition-overlay .ed-df-n[type=text]{width:88px;flex:none;font-weight:700;font-variant-numeric:tabular-nums;}
+.ed-df-e{flex:1 1 124px;}
+.ed-comp .ed-df-l{width:40px;}
+.ed-df-e button{flex:1;padding:0 8px;font-size:12px;}
+#edition-overlay .ed-df.bad .ed-df-n[type=text]{border-color:var(--ed-err);}
+
+/* Liste des éléments */
+.ed-evtools{display:flex;gap:8px;align-items:center;}
+.ed-evtools input{flex:1;}
+.ed-evlist{list-style:none;margin:0;padding:0;}
+.ed-ev{display:flex;align-items:center;gap:10px;min-height:54px;border-top:1px solid var(--ed-line);}
+.ed-ev:first-child{border-top:0;}
+.ed-ev-main{flex:1;min-width:0;display:flex;align-items:center;gap:10px;cursor:pointer;padding:6px 0;}
+.ed-ev-main input{flex:none;width:22px;height:22px;margin:0;accent-color:var(--brass);}
+.ed-ev-dot{flex:none;width:10px;height:10px;border-radius:50%;}
+.ed-ev-txt{min-width:0;display:flex;flex-direction:column;}
+.ed-ev-date{font-size:11px;font-weight:600;color:var(--slate);}
+.ed-ev-title{font-size:13px;font-weight:600;color:var(--ink-900);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ed-ev.off .ed-ev-date, .ed-ev.off .ed-ev-title{opacity:0.5;text-decoration:line-through;}
+.ed-tag{flex:none;font-size:10.5px;font-weight:600;color:var(--ed-warn);border:1px solid currentColor;border-radius:6px;padding:1px 6px;white-space:nowrap;}
+.ed-tag.ed-tag-p{color:var(--slate);}
+.ed-ev-empty{padding:10px 0;color:var(--slate);font-size:13px;}
+#edition-overlay.ed-wide .ed-evlist{max-height:360px;overflow-y:auto;touch-action:pan-y;overscroll-behavior:contain;}
+
+/* Compressions (plis) */
+.ed-complist{display:flex;flex-direction:column;gap:10px;}
+.ed-comp{border:1px solid var(--ed-line);border-radius:12px;background:var(--paper-card);padding:10px 12px 12px;display:flex;flex-direction:column;gap:10px;}
+.ed-comp-h{display:flex;align-items:center;gap:10px;min-width:0;}
+.ed-fold{width:30px;height:15px;flex:none;}
+.ed-comp-ti{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.3;}
+.ed-comp-t{font-weight:700;color:var(--ink-900);}
+.ed-comp-d{font-size:12px;color:var(--slate);}
+.ed-comp-h .ed-btn{margin-left:auto;flex:none;}
+
+/* Export */
+.ed-exp{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.ed-exp .ed-btn{min-width:0;padding:0 8px;}
+.ed-result{border:1px solid var(--brass);border-radius:12px;background:var(--ed-tint);padding:10px 12px 12px;display:flex;flex-direction:column;gap:8px;}
+.ed-result-h{display:flex;flex-direction:column;gap:2px;font-size:13px;color:var(--ink-900);}
+.ed-result-h span{font-size:12px;color:var(--slate);word-break:break-all;}
+#ed-reset{align-self:flex-start;margin-bottom:6px;}
+
+/* Notification (avec « Annuler ») */
+#ed-toast{
+  position:absolute;left:50%;transform:translateX(-50%);bottom:14px;z-index:30;width:max-content;max-width:min(520px,calc(100% - 28px));
+  display:flex;align-items:center;gap:14px;background:var(--ink-900);color:var(--paper);border-radius:12px;
+  padding:11px 14px;font-size:13px;font-weight:500;line-height:1.35;box-shadow:var(--ed-shadow);
+}
+#ed-toast button{font-family:inherit;font-size:13px;font-weight:700;background:transparent;border:0;color:var(--brass-bright);cursor:pointer;padding:6px 4px;min-height:36px;flex:none;}
+body:not(.dark-mode) #ed-toast button{color:#E2C487;}
+
+/* Petits écrans : la fenêtre occupe presque tout l'écran */
+@media (max-width:640px), (max-height:480px){
+  #edition-overlay{
+    padding:calc(6px + env(safe-area-inset-top)) calc(6px + env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) calc(6px + env(safe-area-inset-left));
+  }
+  #edition-card{padding:14px 14px 10px;border-radius:12px;}
+  #ed-close{top:12px;right:12px;}
+  #ed-sub{font-size:12px;}
+}
+@media (max-width:640px){
+  #ed-sub{display:none;}                          /* sur téléphone, la place va à l'aperçu et aux réglages */
+}
+/* Téléphone en paysage (classe posée par edition.js : hauteur ≤ 480 px et plus large que haute) */
+#edition-overlay.ed-short #edition-card{padding:8px 12px 8px;}
+#edition-overlay.ed-short #ed-head{margin-bottom:6px;padding-right:40px;}
+#edition-overlay.ed-short h2{font-size:15px;}
+#edition-overlay.ed-short #ed-sub{display:none;}
+#edition-overlay.ed-short #ed-close{top:7px;right:10px;width:30px;height:30px;}
+#edition-overlay.ed-short.ed-wide #ed-body{gap:14px;}
+#edition-overlay.ed-short.ed-wide #ed-panel{flex-basis:clamp(280px,40%,350px);}
+#edition-overlay.ed-short #ed-stagebar{margin-bottom:5px;}
+#edition-overlay.ed-short #ed-counts{margin-top:5px;font-size:11.5px;}
+#edition-overlay.ed-short #ed-hint{margin-top:2px;font-size:11.5px;}
+@media (prefers-reduced-motion:reduce){
+  #edition-overlay *, #edition-overlay *::before, #edition-overlay *::after{transition:none !important;}
+}
+
+/* Bouton « Édition » de la barre d'action : libellé visible quand la place le permet (la barre compte maintenant neuf boutons) */
+.rail-label{display:none;}
+@media (min-width:641px) and (min-height:481px){
+  #app:not(.portrait) #rail-edition{width:52px;height:auto;min-height:44px;flex-direction:column;gap:1px;padding:4px 0 3px;}
+  #app.portrait #rail-edition{width:auto;gap:7px;padding:0 12px 0 10px;}
+  #rail-edition .rail-label{display:block;font-size:9.5px;font-weight:600;letter-spacing:0.02em;line-height:1.1;}
+  #app.portrait #rail-edition .rail-label{font-size:12px;letter-spacing:0.01em;}
+}
+/* Neuf boutons au lieu de huit : paliers supplémentaires pour que la barre tienne en hauteur (paysage) et en largeur (portrait) */
+@media (max-height:430px){
+  #app:not(.portrait) .rail-btn{width:34px;height:34px;}
+  #app:not(.portrait) #add-btn{width:30px;height:30px;}
+  #app:not(.portrait) .rail-group{gap:2px;}
+}
+@media (min-width:381px) and (max-width:411px){
+  #app.portrait #action-rail{
+    padding-left:calc(8px + env(safe-area-inset-left));padding-right:calc(8px + env(safe-area-inset-right));
+  }
+  #app.portrait .rail-btn{width:36px;height:36px;}
+  #app.portrait #add-btn{width:34px;height:34px;}
+}
+@media (max-width:340px){
+  #app.portrait #action-rail{
+    padding-left:calc(4px + env(safe-area-inset-left));padding-right:calc(4px + env(safe-area-inset-right));
+  }
+  #app.portrait .rail-btn{width:30px;height:30px;}
+  #app.portrait #add-btn{width:28px;height:28px;}
+  #app.portrait .rail-group{gap:2px;}
+}
+@media (max-height:340px){
+  #app:not(.portrait) #action-rail{
+    padding-top:calc(6px + env(safe-area-inset-top));padding-bottom:calc(6px + env(safe-area-inset-bottom));
+  }
+  #app:not(.portrait) .rail-btn{width:32px;height:32px;}
+  #app:not(.portrait) #add-btn{width:28px;height:28px;}
+  #app:not(.portrait) .rail-group{gap:1px;}
+}

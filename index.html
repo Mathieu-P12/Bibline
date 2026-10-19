@@ -59,6 +59,12 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3.5" width="6" height="6"/><circle cx="18" cy="6.5" r="3"/><path d="M9 6.5h6M12 6.5v7M7 13.5h10M7 13.5v3M17 13.5v3"/><rect x="4" y="16.5" width="6" height="5"/><circle cx="17" cy="19" r="2.6"/></svg>
         <span class="new-dot"></span>
       </button>
+      <!-- Mode édition (v0.11) : composer une vue de la frise et l'exporter en PDF / image. Code dans edition.js -->
+      <button type="button" class="rail-btn" id="rail-edition" title="Mode édition : exporter la frise en PDF ou en image" aria-label="Mode édition">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h8l5 5v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M14 3v5h5"/><path d="M7.5 15.5h2l1.5-3.5 2 6 1.5-2.5h2"/></svg>
+        <span class="rail-label">Édition</span>
+        <span class="new-dot"></span>
+      </button>
     </div>
     <div class="rail-group">
       <button type="button" class="rail-btn" id="reset-view" title="Vue d'ensemble">
@@ -508,7 +514,7 @@
         <div class="sr-label" id="mentions-row-label" style="margin-bottom:8px;">Mentions</div>
         <div class="settings-about">
           <a class="about-repo" id="about-repo-link" href="https://github.com/Mathieu-P12/Bibline" target="_blank" rel="noopener" title="Ouvrir le dépôt du projet sur GitHub">
-            <b>Bibline</b> — <span id="app-version-label">v0.10.1</span>
+            <b>Bibline</b> — <span id="app-version-label">v0.11.0</span>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6"/><path d="M20 4l-8.5 8.5"/><path d="M19 14.5V19a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 19V6.5A1.5 1.5 0 0 1 5 5h4.5"/></svg>
           </a><br>
           Application de gestion de connaissances historiques.<br>
@@ -720,10 +726,140 @@
       </div>
     </div>
   </div>
+
+  <!-- ===== Mode édition (v0.11) : on compose une vue de la frise (période, catégories, éléments, images, compressions)
+              puis on l'exporte en PDF, PNG ou JPG. Le code est dans edition.js ; les textes fixes portent data-t / data-tp / data-tt / data-ta ===== -->
+  <div id="edition-overlay" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="ed-title">
+    <div class="modal-card" id="edition-card">
+      <button type="button" id="ed-close" class="modal-close" data-tt="close" data-ta="close" title="Fermer" aria-label="Fermer">✕</button>
+      <header id="ed-head">
+        <svg class="ed-mark" viewBox="0 0 36 18" aria-hidden="true"><path style="fill:var(--ed-foldl)" d="M0 6L6.4 2L12 18L0 18ZM12 6L18.4 2L24 18L12 18ZM24 6L30.4 2L36 18L24 18Z"/><path style="fill:var(--ed-foldd)" d="M6.4 2L12 6L12 18ZM18.4 2L24 6L24 18ZM30.4 2L36 6L36 18Z"/></svg>
+        <div>
+          <h2 id="ed-title" data-t="title">Mode édition</h2>
+          <p id="ed-sub" data-t="subtitle">Composez une vue de la frise, puis exportez-la en PDF ou en image.</p>
+        </div>
+      </header>
+
+      <div id="ed-body">
+        <section id="ed-stage" data-ta="previewAria" aria-label="Aperçu de la planche à exporter">
+          <div id="ed-stagebar">
+            <div id="ed-zoomseg" class="ed-seg" role="group" data-ta="sizeAria" aria-label="Taille de l’aperçu">
+              <button type="button" id="ed-zfit" aria-pressed="true" data-t="fit">Ajusté</button>
+              <button type="button" id="ed-zbig" aria-pressed="false" data-t="zoom">Zoom</button>
+            </div>
+            <button type="button" class="ed-btn ed-sm ed-pri" id="ed-goexport" data-t="export">Exporter</button>
+            <button type="button" class="ed-btn ed-sm" id="ed-placecancel" data-t="cancelPlace" hidden>Annuler la pose</button>
+          </div>
+          <div id="ed-wrap"><canvas id="ed-sheet" role="img" data-ta="previewAria" aria-label="Aperçu de la planche à exporter"></canvas></div>
+          <p id="ed-counts" aria-live="polite"></p>
+          <p id="ed-hint" aria-live="polite"></p>
+        </section>
+
+        <div id="ed-panel">
+          <details class="ed-sec" id="ed-s-per" open>
+            <summary><span class="ed-sh-t" data-t="secPeriod">Période</span><span class="ed-sh-v" id="ed-v-per"></span></summary>
+            <div class="ed-sec-b">
+              <div class="ed-dates" id="ed-perfields"></div>
+              <p class="ed-err" id="ed-pererr" role="alert" hidden></p>
+              <div class="ed-chips" id="ed-presets" role="group" data-ta="presetsAria" aria-label="Périodes prédéfinies"></div>
+            </div>
+          </details>
+
+          <details class="ed-sec" id="ed-s-cat">
+            <summary><span class="ed-sh-t" data-t="secCats">Catégories</span><span class="ed-sh-v" id="ed-v-cat"></span></summary>
+            <div class="ed-sec-b">
+              <div class="ed-chips" id="ed-catchips" role="group" data-ta="catsAria" aria-label="Catégories à afficher"></div>
+              <div class="ed-row">
+                <button type="button" class="ed-btn ed-sm" id="ed-catall" data-t="catsAll">Toutes</button>
+                <button type="button" class="ed-btn ed-sm" id="ed-catnone" data-t="catsNone">Aucune</button>
+                <button type="button" class="ed-btn ed-sm" id="ed-catsync" data-t="catsSync">Comme la frise</button>
+              </div>
+            </div>
+          </details>
+
+          <details class="ed-sec" id="ed-s-ev">
+            <summary><span class="ed-sh-t" data-t="secItems">Éléments</span><span class="ed-sh-v" id="ed-v-ev"></span></summary>
+            <div class="ed-sec-b">
+              <label class="ed-sw"><input type="checkbox" role="switch" id="ed-swper" checked><span class="ed-sw-track"></span><span class="ed-sw-lab" data-t="periodsOn">Afficher les périodes (barres)</span></label>
+              <div class="ed-evtools">
+                <input type="search" id="ed-evsearch" data-tp="search" placeholder="Rechercher" data-ta="searchAria" aria-label="Rechercher un élément" autocomplete="off">
+                <button type="button" class="ed-btn ed-sm" id="ed-evall" data-t="showAll">Tout afficher</button>
+              </div>
+              <p class="ed-note" id="ed-evnote"></p>
+              <ul class="ed-evlist" id="ed-evlist"></ul>
+            </div>
+          </details>
+
+          <details class="ed-sec" id="ed-s-img">
+            <summary><span class="ed-sh-t" data-t="secImages">Images</span><span class="ed-sh-v" id="ed-v-img"></span></summary>
+            <div class="ed-sec-b">
+              <label class="ed-sw"><input type="checkbox" role="switch" id="ed-swimg" checked><span class="ed-sw-track"></span><span class="ed-sw-lab" data-t="imgOn">Afficher les images</span></label>
+              <p class="ed-note" data-t="imgNote">Les images sont celles des fiches. Elles sont chargées depuis leur adresse : sans connexion, ou si le site refuse l’accès, la fiche est exportée sans image.</p>
+              <p class="ed-note" id="ed-imgstatus" aria-live="polite" hidden></p>
+              <div class="ed-row"><button type="button" class="ed-btn ed-sm" id="ed-imgretry" data-t="imgRetry" hidden>Réessayer le chargement</button></div>
+            </div>
+          </details>
+
+          <details class="ed-sec" id="ed-s-comp">
+            <summary><span class="ed-sh-t" data-t="secComps">Compressions</span><span class="ed-sh-v" id="ed-v-comp"></span></summary>
+            <div class="ed-sec-b">
+              <p class="ed-note" data-t="compNote">Une compression remplace une période creuse par un pli de largeur fixe. Les deux dates qui l’encadrent restent lisibles ; les éléments qu’elle contient sont masqués.</p>
+              <div class="ed-complist" id="ed-complist"></div>
+              <div class="ed-row">
+                <button type="button" class="ed-btn" id="ed-compadd" data-t="compAdd">Ajouter (suggestion)</button>
+                <button type="button" class="ed-btn" id="ed-compplace" aria-pressed="false">Poser sur la frise</button>
+                <button type="button" class="ed-btn ed-ghost" id="ed-compclear" data-t="compClear">Tout retirer</button>
+              </div>
+              <div class="ed-rng"><label for="ed-gapw" data-t="compWidth">Largeur des plis</label><input type="range" id="ed-gapw" min="36" max="110" step="2"><output id="ed-gapout" for="ed-gapw"></output></div>
+            </div>
+          </details>
+
+          <details class="ed-sec" id="ed-s-lay">
+            <summary><span class="ed-sh-t" data-t="secLayout">Mise en page</span><span class="ed-sh-v" id="ed-v-lay"></span></summary>
+            <div class="ed-sec-b">
+              <label class="ed-fld"><span data-t="docTitle">Titre</span><input type="text" id="ed-doctitle" maxlength="60" autocomplete="off" data-tp="titlePh" placeholder="Frise chronologique"></label>
+              <label class="ed-fld"><span data-t="format">Format</span><select id="ed-fmt"></select></label>
+              <label class="ed-sw"><input type="checkbox" role="switch" id="ed-swleg" checked><span class="ed-sw-track"></span><span class="ed-sw-lab" data-t="legend">Légende des catégories</span></label>
+            </div>
+          </details>
+
+          <details class="ed-sec" id="ed-s-exp">
+            <summary><span class="ed-sh-t" data-t="secExport">Export</span><span class="ed-sh-v" id="ed-v-exp"></span></summary>
+            <div class="ed-sec-b">
+              <div class="ed-seg" id="ed-qual" role="group" data-ta="quality" aria-label="Qualité de l’export">
+                <button type="button" data-q="std" aria-pressed="true" data-t="qStd">Standard</button>
+                <button type="button" data-q="hi" aria-pressed="false" data-t="qHi">Haute définition</button>
+              </div>
+              <p class="ed-note" id="ed-expinfo"></p>
+              <div class="ed-exp">
+                <button type="button" class="ed-btn ed-pri" data-x="pdf">PDF</button>
+                <button type="button" class="ed-btn ed-pri" data-x="png">PNG</button>
+                <button type="button" class="ed-btn ed-pri" data-x="jpg">JPG</button>
+              </div>
+              <div class="ed-result" id="ed-result" role="status" hidden>
+                <div class="ed-result-h"><b data-t="resultTitle">Fichier prêt</b><span id="ed-result-name"></span></div>
+                <p class="ed-note" id="ed-result-note" hidden></p>
+                <div class="ed-row">
+                  <button type="button" class="ed-btn ed-sm ed-pri" id="ed-result-save" data-t="btnSave">Enregistrer</button>
+                  <button type="button" class="ed-btn ed-sm" id="ed-result-share" data-t="btnShare" hidden>Partager</button>
+                </div>
+              </div>
+              <p class="ed-note" data-t="expPdfNote">Le PDF contient une page unique à la taille du format choisi : la planche y est une image haute définition, le texte n’y est donc pas sélectionnable.</p>
+            </div>
+          </details>
+
+          <button type="button" class="ed-btn ed-ghost" id="ed-reset">Réinitialiser</button>
+        </div>
+      </div>
+
+      <div id="ed-toast" role="status" hidden><span id="ed-toastmsg"></span><button type="button" id="ed-toastundo" data-t="undo" hidden>Annuler</button></div>
+    </div>
+  </div>
 </div>
 
 <script src="bible-books.js"></script>
 <script src="arbre.js"></script>
+<script src="edition.js"></script>
 <script src="app.js"></script>
 
   <div id="toast" role="status" aria-live="polite"></div>

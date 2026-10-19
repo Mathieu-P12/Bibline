@@ -1,6 +1,6 @@
 (function(){
 
-const APP_VERSION = 'v0.10.1';
+const APP_VERSION = 'v0.11.0';
 
 /* ---------- Arbre généalogique (v0.10) ----------
    Tout le code de l'arbre est dans arbre.js, chargé avant ce fichier. Si arbre.js manquait ou plantait,
@@ -13,6 +13,14 @@ const TREE_OFF = {
 };
 const TREE = window.BiblineArbre || TREE_OFF;
 let treeReady = false;   // devient vrai quand arbre.js a accepté init() : sans cela, rien de généalogique n'est lu ni écrit
+
+/* ---------- Mode édition (v0.11) ----------
+   Tout le code du mode édition (composer une vue de la frise, l'exporter en PDF / PNG / JPG) est dans edition.js, chargé avant
+   ce fichier. Même principe que l'arbre : si edition.js manquait ou plantait, EDITION deviendrait un ensemble de méthodes qui ne
+   font rien et le bouton serait retiré ; la frise continuerait de fonctionner. La section « Mode édition » (juste après celle de
+   l'arbre, plus bas) est le seul point de contact. Le mode édition LIT les éléments, les catégories et la vue : il n'écrit rien. */
+const EDITION_OFF = { init:()=>false, open(){}, close(){}, isOpen:()=>false, langChanged(){}, itemsChanged(){} };
+const EDITION = window.BiblineEdition || EDITION_OFF;
 let genealogyLoaded = false;   // devient vrai une fois la base généalogique lue sans erreur : avant cela, on n'y écrit jamais
 
 const CATS = {
@@ -247,7 +255,7 @@ const PERIOD_ITEMS = [];
 
 
 let ALL_ITEMS = EVENTS.concat(PERIOD_ITEMS);
-function rebuildAllItems(){ ALL_ITEMS = EVENTS.concat(PERIOD_ITEMS); invalidateTitleIndex(); schedulePersist(); TREE.itemsChanged(); }
+function rebuildAllItems(){ ALL_ITEMS = EVENTS.concat(PERIOD_ITEMS); invalidateTitleIndex(); schedulePersist(); TREE.itemsChanged(); EDITION.itemsChanged(); }
 function genId(prefix){ return prefix+'_'+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
 
 /* ---------- Calendrier (pour la précision mois / jour) ---------- */
@@ -1576,6 +1584,7 @@ function applyLanguage(lang){
     detailBarLandscape.classList.contains('expanded') ? s.expandLessLabel : s.expandMoreLabel;
   updateEventCounterBadge();
   TREE.langChanged(lang);   // l'arbre a ses propres textes, dans les mêmes quatre langues
+  EDITION.langChanged(lang);   // le mode édition aussi
 }
 
 document.getElementById('lang-select').addEventListener('change', (e)=>{
@@ -3070,6 +3079,7 @@ document.getElementById('family-tree-btn').addEventListener('click', ()=>{
   TREE.open();
 });
 document.getElementById('rail-tree').addEventListener('click', ()=> TREE.open());
+document.getElementById('rail-edition').addEventListener('click', ()=> EDITION.open());
 document.getElementById('characters-close').onclick = ()=> characterOverlay.classList.remove('open');
 characterOverlay.addEventListener('click', e=>{ if(e.target===characterOverlay) characterOverlay.classList.remove('open'); });
 
@@ -3549,12 +3559,32 @@ const treeApi = {
   editOpen: ()=> editOverlay.classList.contains('open')
 };
 
+/* ---------- Mode édition (v0.11) ----------
+   Ce que edition.js a le droit de connaître de l'application : de la lecture seulement. Il ne reçoit aucune fonction qui modifie un
+   élément, une catégorie ou la vue. Ses propres réglages (période, éléments masqués, plis…) sont gardés à part, dans le stockage
+   local, sous la clé « bibline-edition ». */
+const editionApi = {
+  getItems: ()=> EVENTS.concat(PERIOD_ITEMS),
+  itemCats,
+  // Toutes les catégories, dans l'ordre où l'application les présente
+  categories: ()=> Object.entries(CATS).map(([key,c])=>({key, label:c.label, color:c.color, locked:!!c.locked})),
+  getView: ()=> ({start:viewStart, end:viewEnd}),       // période actuellement affichée sur la frise
+  getActiveCats: ()=> [...activeCats],                 // catégories actuellement cochées dans les filtres
+  showImages: ()=> timelineShowImages,
+  lang: ()=> currentLang,
+  eras: ()=> ERAS                                      // pour les périodes prédéfinies (Antiquité, Moyen Âge…)
+};
+
 /* ---------- Init ---------- */
 document.getElementById('app-version-label').textContent = APP_VERSION;
 treeReady = TREE.init(treeApi) === true;
 if(!treeReady){
   // arbre.js absent ou inutilisable : on retire les accès à l'arbre plutôt que de laisser des boutons sans effet
   ['rail-tree','family-tree-btn'].forEach(id=>{ document.getElementById(id).style.display = 'none'; });
+}
+if(EDITION.init(editionApi) !== true){
+  // edition.js absent ou inutilisable : même principe, pas de bouton sans effet
+  document.getElementById('rail-edition').style.display = 'none';
 }
 loadSettings();
 uiReady = true;
