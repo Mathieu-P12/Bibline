@@ -1,6 +1,6 @@
 (function(){
 
-const APP_VERSION = 'v0.11.1';
+const APP_VERSION = 'v0.11.2';
 
 /* ---------- Arbre généalogique (v0.10) ----------
    Tout le code de l'arbre est dans arbre.js, chargé avant ce fichier. Si arbre.js manquait ou plantait,
@@ -1318,6 +1318,7 @@ const STRINGS = {
     familyTreeLabel:"Arbre généalogique", railTreeTitle:"Arbre généalogique",
     treeFromDetailTitle:"Voir dans l'arbre généalogique", treeFromDetailLabel:"Voir dans l'arbre",
     bibleRowLabel:"Ouvrir les versets dans", bibleRowSub:"JW Library si l'application est installée, sinon jw.org",
+    helpLabel:"Aide et tutoriels", helpSub:"Guide pas à pas, avec captures d'écran, sur le Wiki du projet", helpBtn:"Ouvrir le Wiki", helpTitle:"Ouvrir le Wiki du projet sur GitHub",
   },
   en:{
     searchPlaceholder:"Search",
@@ -1376,6 +1377,7 @@ const STRINGS = {
     familyTreeLabel:"Family tree", railTreeTitle:"Family tree",
     treeFromDetailTitle:"Show in the family tree", treeFromDetailLabel:"Show in the tree",
     bibleRowLabel:"Open verses in", bibleRowSub:"JW Library if the app is installed, otherwise jw.org",
+    helpLabel:"Help and tutorials", helpSub:"Step-by-step guide with screenshots on the project Wiki (in French)", helpBtn:"Open the Wiki", helpTitle:"Open the project Wiki on GitHub",
   },
   es:{
     searchPlaceholder:"Buscar",
@@ -1434,6 +1436,7 @@ const STRINGS = {
     familyTreeLabel:"Árbol genealógico", railTreeTitle:"Árbol genealógico",
     treeFromDetailTitle:"Ver en el árbol genealógico", treeFromDetailLabel:"Ver en el árbol",
     bibleRowLabel:"Abrir los versículos en", bibleRowSub:"JW Library si la aplicación está instalada; si no, jw.org",
+    helpLabel:"Ayuda y tutoriales", helpSub:"Guía paso a paso con capturas en el wiki del proyecto (en francés)", helpBtn:"Abrir el wiki", helpTitle:"Abrir el wiki del proyecto en GitHub",
   },
   zh:{
     searchPlaceholder:"搜索",
@@ -1492,6 +1495,7 @@ const STRINGS = {
     familyTreeLabel:"家谱", railTreeTitle:"家谱",
     treeFromDetailTitle:"在家谱中查看", treeFromDetailLabel:"在家谱中查看",
     bibleRowLabel:"经文打开方式", bibleRowSub:"已安装 JW Library 时使用该应用，否则使用 jw.org",
+    helpLabel:"帮助与教程", helpSub:"项目 Wiki 上带截图的分步指南（法语）", helpBtn:"打开 Wiki", helpTitle:"在 GitHub 上打开项目 Wiki",
   }
 };
 let currentLang = 'fr';
@@ -1557,6 +1561,10 @@ function applyLanguage(lang){
   document.getElementById('tree-link-label').textContent = s.treeFromDetailLabel;
   document.getElementById('bible-row-label').textContent = s.bibleRowLabel;
   document.getElementById('bible-row-sub').textContent = s.bibleRowSub;
+  document.getElementById('help-row-label').textContent = s.helpLabel;
+  document.getElementById('help-row-sub').textContent = s.helpSub;
+  document.getElementById('help-btn-label').textContent = s.helpBtn;
+  document.getElementById('help-wiki-link').title = s.helpTitle;
   renderCatFormChips();
   if(typeof fBiblePreview!=='undefined' && fBibleRefs) renderBibleRefs(fBiblePreview, fBibleRefs.value, true);
   document.getElementById('desc-toggle-hint').textContent = s.optionalHint;

@@ -740,6 +740,10 @@ body.dark-mode .lang-select{background-color:var(--paper-panel);}
 .about-repo svg{width:12px;height:12px;opacity:0.75;}
 .about-repo:hover{text-decoration:underline;}
 .about-repo:hover svg{opacity:1;}
+/* Bouton « Ouvrir le Wiki » des paramètres (v0.11.2) : un lien qui a l'allure d'un bouton secondaire */
+.help-link{display:inline-flex;align-items:center;gap:7px;text-decoration:none;white-space:nowrap;}
+.help-link svg{width:12px;height:12px;flex:none;opacity:0.75;}
+.help-link:hover svg{opacity:1;}
 .settings-about b{color:var(--ink-700);}
 
 @media (max-width:640px){
