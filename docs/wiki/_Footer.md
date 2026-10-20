@@ -1,0 +1,1 @@
+Wiki de **Bibline** · version 0.11.x · [Ouvrir l'application](https://mathieu-p12.github.io/Bibline/) · [Dépôt GitHub](https://github.com/Mathieu-P12/Bibline) · [Signaler un problème](https://github.com/Mathieu-P12/Bibline/issues)
